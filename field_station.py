@@ -268,11 +268,11 @@ class FieldStation:
         
         # Farm setup
         self.farm_name = ""
-        self.farm_location = "Champaign, Illinois, USA"
+        self.farm_location = "Champaign, Illinois, USA (40.1164°N, 88.2434°W)"
         self.setup_name_input_active = True  # Start with name input active
         self.setup_location_selection = 0  # Index in available locations
         self.available_locations = [
-            "Champaign, Illinois, USA",
+            "Champaign, Illinois, USA (40.1164°N, 88.2434°W)",
             # More locations will be added later
         ]
         
@@ -634,7 +634,7 @@ class FieldStation:
             
             # Restore game state
             self.farm_name = save_data.get('farm_name', '')
-            self.farm_location = save_data.get('farm_location', 'Champaign, Illinois, USA')
+            self.farm_location = save_data.get('farm_location', 'Champaign, Illinois, USA (40.1164°N, 88.2434°W)')
             self.money = save_data.get('money', 500)
             self.day = save_data.get('day', 1)
             self.season = Season[save_data.get('season', 'SPRING')]
