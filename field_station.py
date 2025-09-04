@@ -22,47 +22,32 @@ from enum import Enum
 from dataclasses import dataclass
 from typing import Optional, Tuple, List
 
+# Import our design system
+from design_constants import *
+
 # Set window class BEFORE initializing Pygame
 os.environ['SDL_VIDEO_X11_WMCLASS'] = 'field-station'
 
 # Initialize Pygame
 pygame.init()
 
-# Constants
+# Override screen dimensions from design system if needed
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 800
-GRID_WIDTH = 3
-GRID_HEIGHT = 3
-TILE_WIDTH = 64
-TILE_HEIGHT = 32
 
-# Game Constants
+# Game-specific constants (others come from design_constants.py)
 SEED_COST = 10
 HARVEST_SOIL_DAMAGE = 0.05
 DAY_LENGTH_MS = 30000
 MESSAGE_DURATION = 3000
 
-# Font Sizes
+# Font Sizes - Updated to use design system
 FONT_SIZES = {
-    'title': 72,
-    'heading': 48,
-    'body': 24,
-    'small': 16
+    'title': FONT_HEADING_1 * 2,  # 64 for title screen
+    'heading': FONT_HEADING_1,      # 32
+    'body': FONT_BODY_BASE,         # 16
+    'small': FONT_BODY_SMALL        # 14
 }
-
-# Colors
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-GREEN = (34, 139, 34)
-BROWN = (139, 69, 19)
-BLUE = (100, 149, 237)
-YELLOW = (255, 215, 0)
-GRAY = (128, 128, 128)
-DARK_GREEN = (0, 100, 0)
-LIGHT_BROWN = (205, 133, 63)
-LIGHT_GREEN = (144, 238, 144)
-DARK_GRAY = (50, 50, 50)
-RED = (255, 0, 0)
 
 # Seasons
 class Season(Enum):
@@ -1461,28 +1446,29 @@ class FieldStation:
                 self.draw_panel(panel_id, panel_data)
     
     def draw_panel(self, panel_id, panel):
-        """Draw a specific modular panel"""
+        """Draw a specific modular panel using design system"""
         x, y, w, h = panel['rect']
         
-        # Panel background
+        # Panel background with design system colors
         s = pygame.Surface((w, h))
-        s.set_alpha(220)
-        s.fill((30, 30, 30))
+        s.set_alpha(240)
+        s.fill(SURFACE_OVERLAY)
         self.screen.blit(s, (x, y))
-        pygame.draw.rect(self.screen, WHITE, (x, y, w, h), 2)
+        pygame.draw.rect(self.screen, SURFACE_BORDER, (x, y, w, h), 2)
         
-        # Title bar with close button
-        title_height = 25
-        pygame.draw.rect(self.screen, (50, 50, 50), (x, y, w, title_height))
+        # Title bar with design system styling
+        title_height = PANEL_HEADER_HEIGHT
+        pygame.draw.rect(self.screen, SURFACE_RAISED, (x, y, w, title_height))
+        pygame.draw.rect(self.screen, SURFACE_BORDER, (x, y, w, title_height), 1)
         
-        title_text = self.ui_font.render(panel['title'], True, WHITE)
-        self.screen.blit(title_text, (x + 5, y + 3))
+        title_text = self.ui_font.render(panel['title'], True, TEXT_PRIMARY)
+        self.screen.blit(title_text, (x + SPACE_XS, y + SPACE_XS))
         
-        # Close button
-        close_rect = pygame.Rect(x + w - 22, y + 3, 18, 18)
-        pygame.draw.rect(self.screen, (80, 80, 80), close_rect)
-        pygame.draw.rect(self.screen, RED, close_rect, 1)
-        close_text = self.small_font.render("×", True, WHITE)
+        # Close button with design system colors
+        close_rect = pygame.Rect(x + w - 22, y + SPACE_XXS, 18, 18)
+        pygame.draw.rect(self.screen, SURFACE_RAISED, close_rect)
+        pygame.draw.rect(self.screen, ERROR_RED, close_rect, 1)
+        close_text = self.small_font.render("×", True, TEXT_PRIMARY)
         close_text_rect = close_text.get_rect(center=close_rect.center)
         self.screen.blit(close_text, close_text_rect)
         
