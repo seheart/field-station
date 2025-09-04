@@ -1,152 +1,96 @@
-# 🌽 Field Station v1.0
+# 🌽 Field Station
+
+**A scientifically-accurate farming simulation that bridges entertainment and agricultural education**
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Pygame](https://img.shields.io/badge/Pygame-2.0+-green.svg)](https://www.pygame.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Educational](https://img.shields.io/badge/Use-Educational-purple.svg)](README.md)
-[![Field Research](https://img.shields.io/badge/Focus-Field%20Research-brown.svg)](README.md)
 
-A data-driven field research simulation built with Python and Pygame, featuring scientifically accurate crop varieties and location-based research mechanics.
+Field Station features real plant varieties with authentic scientific nomenclature and location-specific growing conditions. Unlike typical farming games that use generic crops, this simulation teaches actual agricultural practices while providing engaging gameplay.
 
-## ✨ Features
+## ✨ Key Features
 
-### 🌾 Scientific Agriculture
-- **8 crop varieties** with scientific names and Illinois-specific strains:
-  - Corn - *Zea mays* var. saccharata (Sweet Corn)
-  - Field Corn - *Zea mays* var. indentata
-  - Wheat - *Triticum aestivum* 'Soft Red Winter'
-  - Potato - *Solanum tuberosum* 'Russet Burbank'
-  - Carrot - *Daucus carota* 'Imperator'
-  - Soybean - *Glycine max* (nitrogen-fixing)
-  - Pumpkin - *Cucurbita pepo* 'Howden'
-  - Tomato - *Solanum lycopersicum* 'Better Boy'
+- **🔬 Scientific Accuracy**: Real crop varieties with proper binomial naming (genus and species)
+- **🌍 Location-Based**: Authentic Champaign County, Illinois agricultural conditions
+- **📚 Educational Value**: Learn soil science, crop rotation, and seasonal farming patterns
+- **⚡ Dynamic Systems**: Weather events, market fluctuations, and seasonal challenges
+- **🎮 Engaging Gameplay**: Isometric 3x3 grid with zoom, save/load, and progression systems
 
-### 🗺️ Location-Based Field Research
-- **Champaign, Illinois, USA** - Default field research location
-- Accurate soil properties based on Central Illinois prairie conditions
-- Climate-specific weather patterns and seasonal timing
-- Expandable system for adding more field research regions
-
-### 🎮 Game Mechanics
-- **3x3 isometric tile grid** with zoom (0.3x to 10x)
-- **Real-time growth simulation** with seasonal effects
-- **Soil management system**: quality, moisture, and nitrogen levels
-- **Weather system**: Sunny, cloudy, rainy, snowy conditions
-- **Auto-harvest feature** for mature crops
-- **Economic system**: Buy seeds, sell harvests, manage finances
-
-### 🎯 Interactive Features
-- **Farm setup screen**: Name your farm and choose location
-- **Dynamic time controls**: Pause, speed up (1x-8x), or slow down
-- **Smart crop selection**: Auto-plants season-appropriate crops
-- **Detailed farm statistics** and growth tracking
-- **Color-coded UI** for quick status understanding
-
-## 🚀 Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
 ```bash
 pip install pygame
 ```
 
-### Installation
+### Installation & Run
 ```bash
 git clone https://github.com/seheart/field_station.git
 cd field_station
 python3 field_station.py
 ```
 
-### Controls
-- **ESC**: Main menu / Return to menu
-- **Arrow Keys / WASD**: Move camera / Navigate menus
-- **Mouse**: Click tiles to open popup, interact with UI
-- **Mouse Wheel**: Zoom in/out (0.3x to 10x)
-- **Space**: Pause/unpause game
-- **P**: Plant crop on selected tile
-- **H**: Harvest crop from selected tile
-- **A**: Toggle auto-harvest
-- **Ctrl+S**: Save game
-- **Ctrl+L**: Load game
-- **+/-**: Speed up/slow down time
-- **F1**: Toggle debug mode (shows click detection info)
+## 🎯 What Makes It Special
+
+- **Real Science**: Every crop includes authentic cultivars grown in Central Illinois
+- **Educational Focus**: Designed for classroom use while remaining fun for casual players
+- **Data-Driven**: Game mechanics based on actual agricultural research data
+- **Progressive Learning**: Encourages exploration of crop combinations and farming strategies
+
+## 🎮 Gameplay
+
+Manage a 3x3 research farm through four seasons, making decisions about:
+- **Crop Selection**: Choose from 8 scientifically-accurate varieties
+- **Soil Management**: Monitor quality, moisture, and nitrogen levels  
+- **Market Strategy**: Buy and sell based on seasonal price fluctuations
+- **Weather Response**: Adapt to realistic Midwest weather patterns
+
+## 🧪 For Educators
+
+Field Station is designed for educational integration:
+- **Biology Classes**: Plant taxonomy and growth cycles
+- **Environmental Science**: Sustainable farming practices  
+- **Geography**: Regional agricultural patterns
+- **Economics**: Market dynamics and resource management
+
+## 🛠️ Technical Details
+
+- **Engine**: Pygame for cross-platform compatibility
+- **Architecture**: Modular object-oriented design with comprehensive testing
+- **Performance**: Optimized for smooth gameplay with zoom capabilities (0.3x-10x)
+- **Save System**: JSON-based persistence with versioning support
+
+## 📖 Documentation
+
+- **[Game Strategy](GAME_STRATEGY.md)**: Detailed project vision, design philosophy, and development approach
+- **[Development Roadmap](DEVELOPMENT_ROADMAP.md)**: Comprehensive development plan and feature roadmap
+- **[Game Data](game_data.html)**: Interactive crop information and gameplay mechanics
 
 ## 🧪 Testing
 
-Run the comprehensive test suite:
 ```bash
-./run_tests.sh
+./run_tests.sh  # Full test suite
+python3 test_field_station.py  # Unit tests only
 ```
 
-Or run individual components:
-```bash
-python3 test_field_station.py  # Unit tests
-python3 -m py_compile field_station.py  # Syntax check
-```
+## 🤝 Contributing
 
-## 📊 Game Data
-
-View detailed crop information, growth mechanics, and field research tips in [`game_data.html`](game_data.html).
-
-## 🏗️ Architecture
-
-- **field_station.py**: Main game engine with Pygame
-- **test_field_station.py**: Comprehensive test suite
-- **game_data.html**: Interactive crop and mechanics reference
-- **run_tests.sh**: Automated testing script
-- **.github/workflows/**: CI/CD pipeline for multiple Python versions
-
-## 🌱 Development
-
-### Project Structure
-```
-farm-game/
-├── field_station.py                # Main game file
-├── test_field_station.py           # Unit tests  
-├── game_data.html           # Documentation
-├── run_tests.sh             # Test runner
-├── README.md                # This file
-├── ABOUT.md                 # Project details
-└── .github/
-    └── workflows/
-        └── test.yml         # CI/CD pipeline
-```
-
-### Contributing
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run tests (`./run_tests.sh`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+2. Create a feature branch
+3. Run tests to ensure compatibility
+4. Submit a pull request with clear documentation
 
-## 📈 Roadmap
+## 📈 Current Status
 
-### ✅ **Completed in v1.0**
-- [x] **Save/load game functionality** - JSON-based persistence system
-- [x] **Market price fluctuations** - Dynamic seasonal pricing with trends
-- [x] **Advanced weather patterns** - Extreme weather events (drought, flood, storm, hail)
-- [x] **Enhanced UI** - Toast messages, progress bars, tooltips, debug mode
-- [x] **Improved controls** - Banished-style tile interaction with drag threshold
-
-### 🔮 **Future Development**
-- [ ] Additional field research locations (Iowa, Nebraska, etc.)
-- [ ] More crop varieties and seasonal plants
-- [ ] Equipment and technology upgrades
-- [ ] Multiplayer field research cooperation
-- [ ] Achievement and tutorial systems
-
-## 📝 License
-
-This project is open source and available under the MIT License.
-
-## 🙏 Acknowledgments
-
-- Built with [Pygame](https://www.pygame.org/)
-- Agricultural data sourced from University of Illinois Extension
-- Crop varieties selected for Central Illinois field research conditions
-- Isometric tile rendering inspired by classic field research games
+**v1.0 Released** - Core gameplay systems complete:
+- ✅ Full save/load functionality
+- ✅ Dynamic market system with seasonal pricing
+- ✅ Extreme weather events (drought, flood, storms)
+- ✅ Enhanced UI with tooltips and progress feedback
+- ✅ Banished-style tile interaction system
 
 ---
 
-**🔬 Happy Researching!** - *Created with scientific accuracy and research passion*
+**🌱 Where science meets simulation** - *Developed with passion for both gaming and agriculture*
+
+*For detailed information about the project vision, educational philosophy, and long-term development plans, see [GAME_STRATEGY.md](GAME_STRATEGY.md)*

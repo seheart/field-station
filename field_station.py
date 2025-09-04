@@ -1198,10 +1198,6 @@ class FieldStation:
         money_text = self.ui_font.render(f"${self.money}", True, money_color)
         self.screen.blit(money_text, (resources_panel.x + 10, resources_panel.y + 30))
         
-        # Options icon
-        options_x = SCREEN_WIDTH - 45
-        options_y = bar_y + 20
-        self.draw_options_icon(options_x, options_y)
     
     def draw_main_area_panels(self):
         """Draw tile info and farm stats panels in main area"""
@@ -2423,15 +2419,6 @@ class FieldStation:
                 self.speed = spd
                 return True
         
-        # Options icon click (bottom right)
-        options_x = SCREEN_WIDTH - 45
-        options_y = SCREEN_HEIGHT - 130
-        options_rect = pygame.Rect(options_x, options_y, 24, 24)
-        if options_rect.collidepoint(mouse_x, mouse_y):
-            self.previous_game_state = GameState.GAME
-            self.game_state = GameState.OPTIONS
-            self.update_options_items()  # Refresh options to show "Back to Game"
-            return True
         
         return False
     
