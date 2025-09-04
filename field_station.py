@@ -2055,7 +2055,8 @@ class FieldStation:
             elif event.key == pygame.K_DOWN:
                 self.menu_selection = (self.menu_selection + 1) % len(self.pause_menu_options)
             elif event.key == pygame.K_RETURN:
-                return self.activate_pause_menu_item()
+                result = self.activate_pause_menu_item()
+                return result
         
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left click
@@ -2063,7 +2064,8 @@ class FieldStation:
                 for i in range(len(self.pause_menu_options)):
                     if self.get_menu_item_rect(i).collidepoint(mouse_pos):
                         self.menu_selection = i
-                        return self.activate_pause_menu_item()
+                        result = self.activate_pause_menu_item()
+                        return result
         
         return True
     
@@ -2214,10 +2216,10 @@ class FieldStation:
         elif self.game_state == GameState.GAME:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    # Go to pause menu instead of main menu for better UX
+                    # Go to main menu as requested by user
                     self.game_in_progress = True
-                    self.previous_game_state = GameState.GAME
-                    self.game_state = GameState.PAUSE_MENU
+                    self.update_menu_options()
+                    self.game_state = GameState.MENU
                     return True
                 
                 # Add keys to pressed set for continuous movement
@@ -2386,10 +2388,10 @@ class FieldStation:
         
         # Check settings button first
         if hasattr(self, 'settings_button_rect') and self.settings_button_rect and self.settings_button_rect.collidepoint(mouse_x, mouse_y):
-            # Open pause menu when settings is clicked
+            # Open main menu when settings is clicked (user preference)
             self.game_in_progress = True
-            self.previous_game_state = GameState.GAME
-            self.game_state = GameState.PAUSE_MENU
+            self.update_menu_options()
+            self.game_state = GameState.MENU
             return True
         
         # UI elements are now directly on the game area (no grey bar)
