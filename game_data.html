@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farming Game - Data Reference</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #4ade80;
+        }
+        
+        .section {
+            background-color: #2a2a2a;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .section h2 {
+            color: #fbbf24;
+            border-bottom: 2px solid #fbbf24;
+            padding-bottom: 10px;
+        }
+        
+        .crop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .crop-card {
+            background-color: #333;
+            border: 1px solid #666;
+            border-radius: 6px;
+            padding: 15px;
+        }
+        
+        .crop-name {
+            color: #4ade80;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .data-table th, .data-table td {
+            border: 1px solid #555;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        
+        .data-table th {
+            background-color: #3a3a3a;
+            color: #fbbf24;
+        }
+        
+        .value {
+            color: #60a5fa;
+            font-weight: bold;
+        }
+        
+        .range {
+            color: #f97316;
+        }
+        
+        .note {
+            background-color: #374151;
+            border-left: 4px solid #10b981;
+            padding: 10px;
+            margin-top: 15px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚜 Data-Driven Farming Simulator</h1>
+        <p>Game Variables and Data Ranges Reference</p>
+    </div>
+
+    <div class="section">
+        <h2>🌱 Crop Types</h2>
+        <p>All available crops with their characteristics and requirements:</p>
+        
+        <div class="crop-grid">
+            <div class="crop-card">
+                <div class="crop-name">🌾 Wheat - Triticum aestivum 'Soft Red Winter'</div>
+                <strong>Growth Time:</strong> <span class="value">90 days</span><br>
+                <strong>Sale Price:</strong> <span class="value">$25</span><br>
+                <strong>Nitrogen Need:</strong> <span class="value">0.4</span> (moderate)<br>
+                <strong>Water Need:</strong> <span class="value">0.3</span> (low)<br>
+                <strong>Seasons:</strong> <span class="range">Fall</span><br>
+                <small><em>Winter wheat variety common in central Illinois</em></small>
+            </div>
+            
+            <div class="crop-card">
+                <div class="crop-name">🌽 Sweet Corn - Zea mays var. saccharata</div>
+                <strong>Growth Time:</strong> <span class="value">120 days</span><br>
+                <strong>Sale Price:</strong> <span class="value">$35</span><br>
+                <strong>Nitrogen Need:</strong> <span class="value">0.6</span> (high)<br>
+                <strong>Water Need:</strong> <span class="value">0.5</span> (moderate)<br>
+                <strong>Seasons:</strong> <span class="range">Spring</span><br>
+                <small><em>Sweet corn for direct consumption</em></small>
+            </div>
+            
+            <div class="crop-card">
+                <div class="crop-name">🌽 Field Corn - Zea mays var. indentata</div>
+                <strong>Growth Time:</strong> <span class="value">140 days</span><br>
+                <strong>Sale Price:</strong> <span class="value">$40</span><br>
+                <strong>Nitrogen Need:</strong> <span class="value">0.7</span> (very high)<br>
+                <strong>Water Need:</strong> <span class="value">0.6</span> (high)<br>
+                <strong>Seasons:</strong> <span class="range">Spring</span><br>
+                <small><em>Dent corn for livestock feed and ethanol</em></small>
+            </div>
+            
+            <div class="crop-card">
+                <div class="crop-name">🥔 Potato - Solanum tuberosum 'Russet Burbank'</div>
+                <strong>Growth Time:</strong> <span class="value">70 days</span><br>
+                <strong>Sale Price:</strong> <span class="value">$20</span><br>
+                <strong>Nitrogen Need:</strong> <span class="value">0.3</span> (low)<br>
+                <strong>Water Need:</strong> <span class="value">0.4</span> (moderate)<br>
+                <strong>Seasons:</strong> <span class="range">Spring</span><br>
+                <small><em>Popular baking potato variety</em></small>
+            </div>
+            
+            <div class="crop-card">
+                <div class="crop-name">🥕 Carrot - Daucus carota 'Imperator'</div>
+                <strong>Growth Time:</strong> <span class="value">60 days</span><br>
+                <strong>Sale Price:</strong> <span class="value">$15</span><br>
+                <strong>Nitrogen Need:</strong> <span class="value">0.2</span> (very low)<br>
+                <strong>Water Need:</strong> <span class="value">0.3</span> (low)<br>
+                <strong>Seasons:</strong> <span class="range">Spring, Summer</span><br>
+                <small><em>Long, tapered variety for fresh market</em></small>
+            </div>
+            
+            <div class="crop-card">
+                <div class="crop-name">🌱 Soybean - Glycine max</div>
+                <strong>Growth Time:</strong> <span class="value">95 days</span><br>
+                <strong>Sale Price:</strong> <span class="value">$30</span><br>
+                <strong>Nitrogen Need:</strong> <span class="value">-0.3</span> (adds nitrogen!)<br>
+                <strong>Water Need:</strong> <span class="value">0.4</span> (moderate)<br>
+                <strong>Seasons:</strong> <span class="range">Spring, Summer</span><br>
+                <small><em>Major Illinois crop, nitrogen-fixing legume</em></small>
+            </div>
+            
+            <div class="crop-card">
+                <div class="crop-name">🎃 Pumpkin - Cucurbita pepo 'Howden'</div>
+                <strong>Growth Time:</strong> <span class="value">110 days</span><br>
+                <strong>Sale Price:</strong> <span class="value">$28</span><br>
+                <strong>Nitrogen Need:</strong> <span class="value">0.5</span> (moderate)<br>
+                <strong>Water Need:</strong> <span class="value">0.7</span> (high)<br>
+                <strong>Seasons:</strong> <span class="range">Spring</span><br>
+                <small><em>Classic jack-o'-lantern variety</em></small>
+            </div>
+            
+            <div class="crop-card">
+                <div class="crop-name">🍅 Tomato - Solanum lycopersicum 'Better Boy'</div>
+                <strong>Growth Time:</strong> <span class="value">75 days</span><br>
+                <strong>Sale Price:</strong> <span class="value">$45</span><br>
+                <strong>Nitrogen Need:</strong> <span class="value">0.6</span> (high)<br>
+                <strong>Water Need:</strong> <span class="value">0.8</span> (very high)<br>
+                <strong>Seasons:</strong> <span class="range">Spring, Summer</span><br>
+                <small><em>Popular hybrid variety for home farms</em></small>
+            </div>
+        </div>
+        
+        <div class="note">
+            <strong>Note:</strong> Soybeans have negative nitrogen need, meaning they actually add nitrogen to the soil through nitrogen fixation. All varieties shown are commonly grown in central Illinois.
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>🌍 Soil Properties</h2>
+        <table class="data-table">
+            <tr>
+                <th>Property</th>
+                <th>Range</th>
+                <th>Starting Range</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><strong>Soil Quality</strong></td>
+                <td><span class="range">0.0 - 1.0</span></td>
+                <td><span class="value">0.4 - 0.8</span></td>
+                <td>Overall fertility of the soil. Decreases by 0.05 per harvest.</td>
+            </tr>
+            <tr>
+                <td><strong>Moisture</strong></td>
+                <td><span class="range">0.0 - 1.0</span></td>
+                <td><span class="value">0.3 - 0.6</span></td>
+                <td>Water content. Affected by weather and crop water needs.</td>
+            </tr>
+            <tr>
+                <td><strong>Nitrogen</strong></td>
+                <td><span class="range">0.0 - 1.0</span></td>
+                <td><span class="value">0.3 - 0.7</span></td>
+                <td>Nitrogen content. Consumed by crops, restored naturally over time.</td>
+            </tr>
+        </table>
+        
+        <div class="note">
+            <strong>Soil Quality Color Coding:</strong><br>
+            • <span style="color: #22c55e;">Green:</span> > 0.7 (excellent)<br>
+            • <span style="color: #eab308;">Yellow:</span> 0.4 - 0.7 (good)<br>
+            • <span style="color: #ef4444;">Red:</span> < 0.4 (poor)
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>🌦️ Weather System</h2>
+        <table class="data-table">
+            <tr>
+                <th>Weather Type</th>
+                <th>Moisture Change</th>
+                <th>Frequency</th>
+                <th>Effects</th>
+            </tr>
+            <tr>
+                <td><strong>☀️ Sunny</strong></td>
+                <td><span class="value">-0.01</span></td>
+                <td>Most common</td>
+                <td>Slightly dries soil</td>
+            </tr>
+            <tr>
+                <td><strong>☁️ Cloudy</strong></td>
+                <td><span class="value">0.0</span></td>
+                <td>Common</td>
+                <td>No moisture change</td>
+            </tr>
+            <tr>
+                <td><strong>🌧️ Rainy</strong></td>
+                <td><span class="value">+0.02</span></td>
+                <td>Regular</td>
+                <td>Increases soil moisture</td>
+            </tr>
+            <tr>
+                <td><strong>❄️ Snowy</strong></td>
+                <td><span class="value">+0.01</span></td>
+                <td>Winter only</td>
+                <td>Slight moisture increase</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>📅 Season System</h2>
+        <table class="data-table">
+            <tr>
+                <th>Season</th>
+                <th>Duration</th>
+                <th>Weather Pattern</th>
+                <th>Plantable Crops</th>
+            </tr>
+            <tr>
+                <td><strong>🌸 Spring</strong></td>
+                <td>Mar - May</td>
+                <td>Mixed weather, frequent rain</td>
+                <td>Wheat, Corn, Potato, Carrot, Beans</td>
+            </tr>
+            <tr>
+                <td><strong>☀️ Summer</strong></td>
+                <td>Jun - Aug</td>
+                <td>Sunny, occasional storms</td>
+                <td>Carrot, Beans</td>
+            </tr>
+            <tr>
+                <td><strong>🍂 Fall</strong></td>
+                <td>Sep - Nov</td>
+                <td>Cooler, more cloudy</td>
+                <td>Wheat</td>
+            </tr>
+            <tr>
+                <td><strong>❄️ Winter</strong></td>
+                <td>Dec - Feb</td>
+                <td>Cold, snow possible</td>
+                <td>No crops can be planted</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>⏱️ Game Timing</h2>
+        <table class="data-table">
+            <tr>
+                <th>Setting</th>
+                <th>Value</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><strong>Base Day Length</strong></td>
+                <td><span class="value">30 seconds</span></td>
+                <td>Real-time duration of one game day at 1x speed</td>
+            </tr>
+            <tr>
+                <td><strong>Speed Options</strong></td>
+                <td><span class="range">1x, 2x, 5x</span></td>
+                <td>Available game speed multipliers</td>
+            </tr>
+            <tr>
+                <td><strong>Days per Year</strong></td>
+                <td><span class="value">365</span></td>
+                <td>Standard calendar year</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>💰 Economics</h2>
+        <table class="data-table">
+            <tr>
+                <th>Item</th>
+                <th>Cost/Value</th>
+                <th>Notes</th>
+            </tr>
+            <tr>
+                <td><strong>Starting Money</strong></td>
+                <td><span class="value">$500</span></td>
+                <td>Initial player resources</td>
+            </tr>
+            <tr>
+                <td><strong>Seed Cost</strong></td>
+                <td><span class="value">$10</span></td>
+                <td>Cost to plant any crop</td>
+            </tr>
+            <tr>
+                <td><strong>Harvest Value</strong></td>
+                <td><span class="range">$15 - $35</span></td>
+                <td>Varies by crop type × soil quality multiplier</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>🎮 Game Mechanics</h2>
+        <ul>
+            <li><strong>Grid Size:</strong> <span class="value">3x3 tiles</span> (9 total)</li>
+            <li><strong>Zoom Range:</strong> <span class="range">0.3x to 10x</span></li>
+            <li><strong>Auto-planting:</strong> Game selects appropriate crops for season (prefers wheat)</li>
+            <li><strong>Growth Factors:</strong>
+                <ul>
+                    <li>Insufficient water (< 50% need): <span class="value">0.8x growth speed</span></li>
+                    <li>Excess water (> 150% need): <span class="value">0.9x growth speed</span></li>
+                    <li>Insufficient nitrogen (< 50% need): <span class="value">0.7x growth speed</span></li>
+                </ul>
+            </li>
+            <li><strong>Natural Recovery:</strong> Empty tiles slowly gain nitrogen (+0.001/day)</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>🎯 UI Color Codes</h2>
+        <table class="data-table">
+            <tr>
+                <th>Element</th>
+                <th>Color</th>
+                <th>Meaning</th>
+            </tr>
+            <tr>
+                <td><strong>Soil Quality</strong></td>
+                <td><span style="color: #22c55e;">Green</span> / <span style="color: #eab308;">Yellow</span> / <span style="color: #ef4444;">Red</span></td>
+                <td>Excellent / Good / Poor</td>
+            </tr>
+            <tr>
+                <td><strong>Moisture</strong></td>
+                <td><span style="color: #3b82f6;">Blue</span> / <span style="color: #d2b48c;">Brown</span></td>
+                <td>Adequate / Low</td>
+            </tr>
+            <tr>
+                <td><strong>Nitrogen</strong></td>
+                <td><span style="color: #22c55e;">Green</span> / <span style="color: #eab308;">Yellow</span> / <span style="color: #ef4444;">Red</span></td>
+                <td>High / Medium / Low</td>
+            </tr>
+            <tr>
+                <td><strong>Money</strong></td>
+                <td><span style="color: #22c55e;">Green</span> / <span style="color: #eab308;">Yellow</span> / <span style="color: #ef4444;">Red</span></td>
+                <td>≥$100 / $50-99 / <$50</td>
+            </tr>
+            <tr>
+                <td><strong>Crop Growth</strong></td>
+                <td><span style="color: #22c55e;">Green</span> / <span style="color: #eab308;">Yellow</span></td>
+                <td>Ready to harvest / Still growing</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>📊 Performance Tips</h2>
+        <ul>
+            <li><strong>Maximize Profit:</strong> Plant high-value crops (Corn: $35) in high-quality soil</li>
+            <li><strong>Soil Management:</strong> Use soybeans to restore nitrogen, rotate crops</li>
+            <li><strong>Season Planning:</strong> Spring offers most planting options</li>
+            <li><strong>Water Management:</strong> Plant during rainy periods for best growth</li>
+            <li><strong>Harvest Timing:</strong> Harvest mature crops quickly to avoid waste</li>
+        </ul>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; color: #666;">
+        <p>🚜 Data-Driven Farming Simulator - Game Data Reference v0.1</p>
+        <p><em>Updated: September 4, 2025</em></p>
+    </div>
+</body>
+</html>
