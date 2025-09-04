@@ -1,4 +1,16 @@
 #!/usr/bin/env python3
+"""
+Field Station - A Scientifically-Accurate Farming Simulation
+
+Copyright (c) 2024 Seth Roberts. All rights reserved.
+
+This software is proprietary. See LICENSE file for terms and conditions.
+Educational use in academic institutions is permitted.
+Commercial use requires explicit written permission.
+
+For licensing inquiries: seheart@github.com
+"""
+
 import pygame
 import sys
 import math

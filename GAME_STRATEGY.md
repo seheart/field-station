@@ -126,7 +126,7 @@ Making science accessible to all learners:
 1. **Scientific Authenticity**: Only farming game with real botanical nomenclature
 2. **Educational Integration**: Designed for classroom use from the ground up
 3. **Regional Specificity**: Location-based challenges and crop varieties
-4. **Open Source**: Community-driven development and customization
+4. **Educational Focus**: Designed specifically for learning while remaining commercially viable
 
 ---
 
@@ -195,9 +195,9 @@ The game uses a consistent design language to convey information clearly:
 
 ### **Pricing Strategy**
 - **Educational License**: Free for schools and certified educators
-- **Individual License**: $15-25 (comparable to quality educational games)
-- **Commercial License**: $50+ for agricultural businesses and training programs
-- **Open Source Core**: Base game remains open for community contributions
+- **Steam Release**: $5 individual purchase (mass market accessibility)
+- **Bulk Educational License**: Discounted rates for educational institutions
+- **Commercial Training License**: Premium pricing for agricultural businesses
 
 ---
 
@@ -239,7 +239,7 @@ The game uses a consistent design language to convey information clearly:
 
 ### **Revenue Streams**
 1. **Direct Game Sales**: Primary revenue from individual and institutional purchases
-2. **Educational Licensing**: Bulk licenses for schools, universities, and training programs
+2. **Educational Licensing**: Free access for schools with bulk institutional licenses available
 3. **DLC/Expansions**: New geographic regions, crop varieties, and advanced simulation features
 4. **Consultation Services**: Agricultural education consulting and curriculum development
 5. **Educational Materials**: Supplementary posters, crop identification guides, lesson plans
