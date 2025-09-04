@@ -271,9 +271,16 @@ class FieldStation:
         self.farm_location = "Champaign, Illinois, USA (40.1164°N, 88.2434°W)"
         self.setup_name_input_active = True  # Start with name input active
         self.setup_location_selection = 0  # Index in available locations
+        self.setup_season_selection = -1  # -1 means location selection, 0+ means season selection
         self.available_locations = [
             "Champaign, Illinois, USA (40.1164°N, 88.2434°W)",
             # More locations will be added later
+        ]
+        self.available_seasons = [
+            ("Spring", "Plant new crops and begin growing season"),
+            ("Summer", "Hot weather, ideal for summer crops"),
+            ("Fall", "Harvest season with premium crop prices"),
+            ("Winter", "Limited planting, plan next year's crops")
         ]
         
         # Interface controls screen
@@ -376,41 +383,87 @@ class FieldStation:
         
         # UI elements
         self.settings_button_rect = None
+        
+        # Modular panel system - Banished-style
+        self.modular_panels = {}  # Panel ID -> panel data
+        self.dragging_panel = None
+        self.drag_offset = (0, 0)
+        self.icon_size = 32
+        self.icon_spacing = 40
+        
+        # Initialize bottom-right icon positions
+        icon_start_x = SCREEN_WIDTH - 50
+        icon_y = SCREEN_HEIGHT - 50
+        
+        self.ui_icons = {
+            'field_study': {'pos': (icon_start_x - 4 * self.icon_spacing, icon_y), 'panel': None},
+            'resources': {'pos': (icon_start_x - 3 * self.icon_spacing, icon_y), 'panel': None},
+            'speed': {'pos': (icon_start_x - 2 * self.icon_spacing, icon_y), 'panel': None},
+            'help': {'pos': (icon_start_x - self.icon_spacing, icon_y), 'panel': None},
+            'settings': {'pos': (icon_start_x, icon_y), 'panel': None}
+        }
     
     def screen_to_grid(self, x, y) -> Optional[Tuple[int, int]]:
-        """Convert screen coordinates to grid coordinates - SIMPLIFIED AND ROBUST"""
+        """Convert screen coordinates to grid coordinates - WITH DIAMOND SHAPE CHECK"""
         # Adjust for camera offset
         world_x = x - self.camera_x
         world_y = y - self.camera_y
         
-        # Apply zoom to tile size
-        tile_w = TILE_WIDTH * self.zoom_level
-        tile_h = TILE_HEIGHT * self.zoom_level
+        # Apply zoom to tile size - use same int conversion as grid_to_screen
+        tile_w = int(TILE_WIDTH * self.zoom_level)
+        tile_h = int(TILE_HEIGHT * self.zoom_level)
         
-        # Isometric coordinate conversion
-        # Standard isometric formula: 
-        # grid_x = (world_x / tile_w + world_y / tile_h) / 2
-        # grid_y = (world_y / tile_h - world_x / tile_w) / 2
-        grid_x_float = (world_x / tile_w + world_y / tile_h) / 2
-        grid_y_float = (world_y / tile_h - world_x / tile_w) / 2
+        # Offset click position to account for tile center vs corner
+        # The drawn tile center is at (corner_x + tile_w//2, corner_y + tile_h//2)
+        # So to find which corner a center click came from, we offset backward
+        world_x -= tile_w // 2
+        world_y -= tile_h // 2
         
-        # Round to nearest grid position for generous clicking
+        # Now apply the inverse formula to the corner coordinates
+        grid_x_float = (world_x / tile_w * 2 + world_y / tile_h * 2) / 2
+        grid_y_float = (world_y / tile_h * 2 - world_x / tile_w * 2) / 2
+        
+        # Round to nearest grid position
         grid_x = round(grid_x_float)
         grid_y = round(grid_y_float)
         
-        # Simple bounds check
-        if 0 <= grid_x < GRID_WIDTH and 0 <= grid_y < GRID_HEIGHT:
-            # MUCH more generous tolerance - if we're close to a valid grid position, accept it
-            # This makes clicking much more forgiving
-            tolerance = 0.8  # Very generous - almost any click near a tile works
-            
-            dx = abs(grid_x_float - grid_x)
-            dy = abs(grid_y_float - grid_y)
-            
-            if dx <= tolerance and dy <= tolerance:
-                return (grid_x, grid_y)
+        # Check bounds first
+        if not (0 <= grid_x < GRID_WIDTH and 0 <= grid_y < GRID_HEIGHT):
+            return None
+        
+        # Now check if the click is actually INSIDE the diamond shape
+        # Get the corner position of this tile
+        corner_x, corner_y = self.grid_to_screen(grid_x, grid_y)
+        
+        # Convert back to original click position relative to tile corner
+        click_x = x - corner_x
+        click_y = y - corner_y
+        
+        # Check if click is inside diamond using diamond equation
+        # Diamond points: (0, tile_h//2), (tile_w//2, 0), (tile_w, tile_h//2), (tile_w//2, tile_h)
+        # For a point to be inside, we check if it's within all 4 triangle boundaries
+        is_inside = self.point_in_diamond(click_x, click_y, tile_w, tile_h)
+        
+        if self.debug_mode:
+            self.show_message(f"Grid({grid_x},{grid_y}): click_rel({click_x:.1f},{click_y:.1f}) inside={is_inside}", 
+                            GREEN if is_inside else RED, 2000)
+        
+        if is_inside:
+            return (grid_x, grid_y)
         
         return None
+    
+    def point_in_diamond(self, px, py, tile_w, tile_h) -> bool:
+        """Check if point (px, py) is inside diamond with given tile dimensions"""
+        # Diamond center
+        cx, cy = tile_w // 2, tile_h // 2
+        
+        # Convert to relative coordinates from center
+        dx = abs(px - cx)
+        dy = abs(py - cy)
+        
+        # Diamond equation: |x|/half_width + |y|/half_height <= 1
+        return dx / (tile_w // 2) + dy / (tile_h // 2) <= 1.0
     
     def find_closest_tile(self, screen_x, screen_y) -> Optional[Tuple[int, int]]:
         """Backup method: find the closest tile to a screen click using brute force"""
@@ -570,12 +623,12 @@ class FieldStation:
                 # Draw tile center
                 pygame.draw.circle(self.screen, RED, (tile_screen_x, tile_screen_y), 3)
                 
-                # Draw tile bounds (diamond)
+                # Draw tile bounds (diamond) - centered on tile position
                 points = [
-                    (tile_screen_x, tile_screen_y + tile_h // 2),
-                    (tile_screen_x + tile_w // 2, tile_screen_y),
-                    (tile_screen_x + tile_w, tile_screen_y + tile_h // 2),
-                    (tile_screen_x + tile_w // 2, tile_screen_y + tile_h)
+                    (tile_screen_x, tile_screen_y - tile_h // 2),  # top
+                    (tile_screen_x + tile_w // 2, tile_screen_y),  # right
+                    (tile_screen_x, tile_screen_y + tile_h // 2),  # bottom  
+                    (tile_screen_x - tile_w // 2, tile_screen_y)   # left
                 ]
                 pygame.draw.polygon(self.screen, RED, points, 1)
     
@@ -677,17 +730,17 @@ class FieldStation:
         return full_name
     
     def get_seasonal_background_color(self) -> Tuple[int, int, int]:
-        """Get light background color based on current season"""
+        """Get seasonal background color based on current season"""
         if self.season == Season.WINTER:
-            return (240, 245, 250)  # Very light blue-white
+            return (180, 200, 220)  # Blue-white
         elif self.season == Season.SPRING:
-            return (250, 248, 230)  # Very light yellow-blue
+            return (200, 220, 180)  # Yellow-green
         elif self.season == Season.SUMMER:
-            return (255, 250, 235)  # Very light yellow-orange
+            return (220, 210, 170)  # Yellow-orange
         elif self.season == Season.FALL:
-            return (250, 240, 225)  # Very light orange-brown
+            return (210, 180, 160)  # Orange-brown
         else:
-            return (245, 245, 245)  # Default very light gray
+            return (190, 190, 190)  # Default gray
     
     def draw_tile(self, tile: Tile):
         """Draw a single isometric tile"""
@@ -1225,122 +1278,15 @@ class FieldStation:
         
     
     def draw_main_area_panels(self):
-        """Draw tile info and farm stats panels in main area"""
-        # Left side - Tile info (always visible, shows selected or hovered tile)
-        display_tile = None
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        grid_pos = self.screen_to_grid(mouse_x, mouse_y)
+        """Draw main area panels - Left side tile info REMOVED (now uses popup only)"""
+        # All tile information now displays through click-to-open popup system
+        # No more always-visible side panels cluttering the screen
         
-        # Show selected tile or hovered tile
-        if hasattr(self, 'selected_tile_pos') and self.selected_tile_pos:
-            display_tile = self.selected_tile_pos
-        elif grid_pos and mouse_y < SCREEN_HEIGHT - 150:  # Hover tile if no selection
-            display_tile = grid_pos
-            
-        if display_tile:
-            x, y = display_tile
-            tile = self.grid[y][x]
-            
-            # Tile info panel with semi-transparent background
-            panel_width = 240
-            panel_height = 160
-            panel_rect = pygame.Rect(20, 100, panel_width, panel_height)
-            
-            # Draw semi-transparent background
-            s = pygame.Surface((panel_width, panel_height))
-            s.set_alpha(200)  # Semi-transparent
-            s.fill((20, 20, 20))
-            self.screen.blit(s, panel_rect)
-            pygame.draw.rect(self.screen, WHITE, panel_rect, 1)
-            
-            # Title with selection indicator
-            title_text = f"Tile ({x}, {y})"
-            if hasattr(self, 'selected_tile_pos') and self.selected_tile_pos == (x, y):
-                title_text += " [SELECTED]"
-            title = self.ui_font.render(title_text, True, YELLOW)
-            self.screen.blit(title, (panel_rect.x + 10, panel_rect.y + 8))
-            
-            # Soil info with color coding
-            y_pos = panel_rect.y + 32
-            soil_color = GREEN if tile.soil_quality > 0.7 else YELLOW if tile.soil_quality > 0.4 else RED
-            soil_text = self.font.render(f"Soil: {tile.soil_quality:.2f}", True, soil_color)
-            self.screen.blit(soil_text, (panel_rect.x + 10, y_pos))
-            
-            moisture_color = BLUE if tile.moisture > 0.5 else LIGHT_BROWN
-            moisture_text = self.font.render(f"Moisture: {tile.moisture:.2f}", True, moisture_color)
-            self.screen.blit(moisture_text, (panel_rect.x + 10, y_pos + 18))
-            
-            nitrogen_color = GREEN if tile.nitrogen > 0.5 else YELLOW if tile.nitrogen > 0.3 else RED
-            nitrogen_text = self.font.render(f"Nitrogen: {tile.nitrogen:.2f}", True, nitrogen_color)
-            self.screen.blit(nitrogen_text, (panel_rect.x + 10, y_pos + 36))
-            
-            # Crop info and action buttons
-            if tile.crop:
-                crop_name = self.get_short_crop_name(tile.crop)
-                crop_text = self.font.render(f"Crop: {crop_name}", True, WHITE)
-                self.screen.blit(crop_text, (panel_rect.x + 10, y_pos + 58))
-                
-                growth_color = GREEN if tile.growth_progress >= 1.0 else YELLOW
-                growth_text = self.font.render(f"Growth: {tile.growth_progress:.1%}", True, growth_color)
-                self.screen.blit(growth_text, (panel_rect.x + 10, y_pos + 76))
-                
-                days_text = self.font.render(f"Days: {tile.days_planted}/{crop_type.growth_time}", True, WHITE)
-                self.screen.blit(days_text, (panel_rect.x + 10, y_pos + 94))
-                
-                self.screen.blit(action_btn, (panel_rect.x + 10, y_pos + 112))
-            else:
-                empty_text = self.font.render("Empty tile", True, GRAY)
-                self.screen.blit(empty_text, (panel_rect.x + 10, y_pos + 58))
-                
-                plant_text = self.font.render("Press P to Plant", True, GREEN)
-                self.screen.blit(plant_text, (panel_rect.x + 10, y_pos + 76))
+        # Right side - Farm stats panel REMOVED (now available via Field Study icon)
+        # All farm statistics now accessible through modular Field Study panel
         
-        # Right side - Farm stats panel (transparent background)
-        stats_width = 200
-        stats_height = 140
-        stats_rect = pygame.Rect(SCREEN_WIDTH - stats_width - 20, 100, stats_width, stats_height)
-        
-        # Draw semi-transparent background
-        s = pygame.Surface((stats_width, stats_height))
-        s.set_alpha(200)  # Semi-transparent
-        s.fill((20, 20, 20))
-        self.screen.blit(s, stats_rect)
-        pygame.draw.rect(self.screen, WHITE, stats_rect, 1)
-        
-        # Game statistics
-        stats_title = self.ui_font.render("Farm Stats", True, YELLOW)
-        self.screen.blit(stats_title, (stats_rect.x + 10, stats_rect.y + 8))
-        
-        y_pos = stats_rect.y + 32
-        day_text = self.font.render(f"Day: {self.day}", True, WHITE)
-        self.screen.blit(day_text, (stats_rect.x + 10, y_pos))
-        
-        season_color = {
-            Season.SPRING: LIGHT_GREEN,
-            Season.SUMMER: YELLOW,
-            Season.FALL: (255, 140, 0),  # Orange
-            Season.WINTER: WHITE
-        }
-        season_text = self.font.render(f"Season: {self.season.name.title()}", True, season_color[self.season])
-        self.screen.blit(season_text, (stats_rect.x + 10, y_pos + 18))
-        
-        # Count planted/grown crops
-        planted_crops = sum(1 for row in self.grid for tile in row if tile.crop)
-        mature_crops = sum(1 for row in self.grid for tile in row if tile.crop and tile.growth_progress >= 1.0)
-        
-        crops_text = self.font.render(f"Planted: {planted_crops}", True, WHITE)
-        self.screen.blit(crops_text, (stats_rect.x + 10, y_pos + 36))
-        
-        ready_text = self.font.render(f"Ready: {mature_crops}", True, GREEN if mature_crops > 0 else WHITE)
-        self.screen.blit(ready_text, (stats_rect.x + 10, y_pos + 54))
-        
-        # Auto-harvest status
-        auto_color = GREEN if self.auto_harvest else GRAY
-        auto_text = self.font.render(f"Auto-Harvest: {'ON' if self.auto_harvest else 'OFF'}", True, auto_color)
-        self.screen.blit(auto_text, (stats_rect.x + 10, y_pos + 72))
-        
-        # Market prices panel (bottom left)
-        self.draw_market_panel()
+        # Market prices panel (bottom left) - HIDDEN for Phase 1 research focus
+        # self.draw_market_panel()
     
     def draw_market_panel(self):
         """Draw market prices for current season"""
@@ -1392,48 +1338,11 @@ class FieldStation:
     
     def draw_ui(self):
         """Draw the user interface"""
-        # Background panel - only bottom panel, no top grey bar
-        pygame.draw.rect(self.screen, DARK_GRAY, (0, SCREEN_HEIGHT - 150, SCREEN_WIDTH, 150))
+        # Background panel - REMOVED for clean modular UI system
+        # pygame.draw.rect(self.screen, DARK_GRAY, (0, SCREEN_HEIGHT - 150, SCREEN_WIDTH, 150))
         
-        # Top left - Speed controls and pause
-        x_offset = 10
-        y_offset = 15
-        
-        # Pause button
-        pause_color = YELLOW if self.paused else WHITE
-        pause_text = "⏸ PAUSED" if self.paused else "⏸ Pause"
-        pause_btn = self.font.render(pause_text, True, pause_color)
-        self.screen.blit(pause_btn, (x_offset, y_offset))
-        pause_width = pause_btn.get_width()
-        
-        # Speed buttons - based on Banished progression  
-        speed_x = x_offset + pause_width + 20
-        speeds = [1, 2, 5]  # Banished-like progression
-        for i, spd in enumerate(speeds):
-            speed_color = YELLOW if self.speed == spd else WHITE
-            speed_bg = DARK_GRAY if self.speed != spd else (50, 50, 0)  # Highlight current speed
-            
-            # Draw button background for easier clicking
-            button_rect = pygame.Rect(speed_x + i * 60, y_offset - 2, 55, 25)
-            pygame.draw.rect(self.screen, speed_bg, button_rect)
-            pygame.draw.rect(self.screen, speed_color, button_rect, 1)
-            
-            # Speed icons and text
-            if spd == 1:
-                speed_text = "▶ 1x"
-            elif spd == 2:  
-                speed_text = "▶▶ 2x"
-            else:  # spd == 5
-                speed_text = "▶▶▶ 5x"
-                
-            speed_btn = self.font.render(speed_text, True, speed_color)
-            text_rect = speed_btn.get_rect(center=button_rect.center)
-            self.screen.blit(speed_btn, text_rect)
-        
-        # Time indicator circle - sun/globe showing day progress
-        circle_x = speed_x + 3 * 60 + 20  # After speed buttons
-        circle_y = y_offset + 12  # Center with buttons
-        self.draw_time_indicator(circle_x, circle_y)
+        # Top left - Speed controls REMOVED (now in modular speed panel)
+        # All speed controls, pause button, and time indicator moved to modular UI
         
         # Top center - Farm info, date, season, and weather (like Banished layout)
         center_x = SCREEN_WIDTH // 2
@@ -1482,12 +1391,12 @@ class FieldStation:
         # Main area panels (tile info and farm stats)
         self.draw_main_area_panels()
         
-        # Bottom bar - organized layout
-        self.draw_bottom_bar()
+        # Bottom bar - REMOVED for new modular icon system
+        # self.draw_bottom_bar()
         
-        # Settings gear icon in top-right corner
-        self.draw_settings_button()
-        
+        # New modular icon system in bottom right (includes settings)
+        self.draw_modular_icons()
+        self.draw_modular_panels()
         
         # Remove instructions - moved to Help section
     
@@ -1513,6 +1422,191 @@ class FieldStation:
         gear_text = self.ui_font.render("⚙", True, WHITE)
         gear_rect = gear_text.get_rect(center=(center_x, center_y))
         self.screen.blit(gear_text, gear_rect)
+    
+    def draw_modular_icons(self):
+        """Draw the bottom-right icon bar - Banished style"""
+        for icon_id, icon_data in self.ui_icons.items():
+            x, y = icon_data['pos']
+            
+            # Icon background
+            icon_rect = pygame.Rect(x - self.icon_size//2, y - self.icon_size//2, self.icon_size, self.icon_size)
+            
+            # Highlight if panel is open
+            is_open = icon_id in self.modular_panels and self.modular_panels[icon_id].get('visible', False)
+            bg_color = (80, 80, 80) if is_open else (60, 60, 60)
+            border_color = YELLOW if is_open else WHITE
+            
+            pygame.draw.rect(self.screen, bg_color, icon_rect)
+            pygame.draw.rect(self.screen, border_color, icon_rect, 2)
+            
+            # Icon symbols
+            if icon_id == 'field_study':
+                icon_text = self.ui_font.render("📊", True, WHITE)
+            elif icon_id == 'resources':
+                icon_text = self.ui_font.render("💰", True, WHITE)
+            elif icon_id == 'speed':
+                icon_text = self.ui_font.render("⏱", True, WHITE)
+            elif icon_id == 'help':
+                icon_text = self.ui_font.render("?", True, WHITE)
+            elif icon_id == 'settings':
+                icon_text = self.ui_font.render("⚙", True, WHITE)
+            
+            icon_text_rect = icon_text.get_rect(center=icon_rect.center)
+            self.screen.blit(icon_text, icon_text_rect)
+    
+    def draw_modular_panels(self):
+        """Draw the open modular panels"""
+        for panel_id, panel_data in self.modular_panels.items():
+            if panel_data.get('visible', False):
+                self.draw_panel(panel_id, panel_data)
+    
+    def draw_panel(self, panel_id, panel):
+        """Draw a specific modular panel"""
+        x, y, w, h = panel['rect']
+        
+        # Panel background
+        s = pygame.Surface((w, h))
+        s.set_alpha(220)
+        s.fill((30, 30, 30))
+        self.screen.blit(s, (x, y))
+        pygame.draw.rect(self.screen, WHITE, (x, y, w, h), 2)
+        
+        # Title bar with close button
+        title_height = 25
+        pygame.draw.rect(self.screen, (50, 50, 50), (x, y, w, title_height))
+        
+        title_text = self.ui_font.render(panel['title'], True, WHITE)
+        self.screen.blit(title_text, (x + 5, y + 3))
+        
+        # Close button
+        close_rect = pygame.Rect(x + w - 22, y + 3, 18, 18)
+        pygame.draw.rect(self.screen, (80, 80, 80), close_rect)
+        pygame.draw.rect(self.screen, RED, close_rect, 1)
+        close_text = self.small_font.render("×", True, WHITE)
+        close_text_rect = close_text.get_rect(center=close_rect.center)
+        self.screen.blit(close_text, close_text_rect)
+        
+        # Panel content
+        content_y = y + title_height + 5
+        if panel_id == 'field_study':
+            self.draw_field_study_content(x + 5, content_y, w - 10)
+        elif panel_id == 'resources':
+            self.draw_resources_content(x + 5, content_y, w - 10)
+        elif panel_id == 'speed':
+            self.draw_speed_content(x + 5, content_y, w - 10)
+        elif panel_id == 'help':
+            self.draw_help_content(x + 5, content_y, w - 10, h - title_height - 10)
+    
+    def draw_field_study_content(self, x, y, width):
+        """Draw farm stats content"""
+        stats_y = y
+        
+        # Farm name
+        name_text = self.ui_font.render(f"Farm: {self.farm_name or 'Unnamed'}", True, GREEN)
+        self.screen.blit(name_text, (x, stats_y))
+        stats_y += 25
+        
+        # Location
+        location_text = self.font.render(f"Location: {self.farm_location}", True, WHITE)
+        self.screen.blit(location_text, (x, stats_y))
+        stats_y += 20
+        
+        # Date and season
+        month = ((self.day - 1) // 30) % 12 + 1
+        season_day = ((self.day - 1) % 365) // 30 % 12 + 1
+        date_text = self.font.render(f"Day {self.day} - Month {month}", True, WHITE)
+        self.screen.blit(date_text, (x, stats_y))
+        stats_y += 20
+        
+        season_text = self.font.render(f"Season: {self.season.name.title()}", True, LIGHT_GREEN)
+        self.screen.blit(season_text, (x, stats_y))
+        stats_y += 25
+        
+        # Crop counts
+        planted_count = sum(1 for row in self.grid for tile in row if tile.crop)
+        ready_count = sum(1 for row in self.grid for tile in row if tile.crop and tile.growth_progress >= 1.0)
+        
+        planted_text = self.font.render(f"Planted: {planted_count}/9 tiles", True, WHITE)
+        self.screen.blit(planted_text, (x, stats_y))
+        stats_y += 20
+        
+        ready_text = self.font.render(f"Ready: {ready_count} crops", True, GREEN if ready_count > 0 else WHITE)
+        self.screen.blit(ready_text, (x, stats_y))
+        stats_y += 20
+        
+        # Auto-harvest
+        auto_color = GREEN if self.auto_harvest else GRAY
+        auto_text = self.font.render(f"Auto-Harvest: {'ON' if self.auto_harvest else 'OFF'}", True, auto_color)
+        self.screen.blit(auto_text, (x, stats_y))
+    
+    def draw_resources_content(self, x, y, width):
+        """Draw resources content"""
+        money_color = GREEN if self.money >= 100 else RED if self.money < 50 else YELLOW
+        money_text = self.ui_font.render(f"Budget: ${self.money}", True, money_color)
+        self.screen.blit(money_text, (x, y))
+        
+        # Future: Add other resources here
+    
+    def draw_speed_content(self, x, y, width):
+        """Draw speed controls content"""
+        # Pause button
+        pause_text = "Pause" if not self.paused else "Resume"
+        pause_color = RED if not self.paused else GREEN
+        pause_rect = pygame.Rect(x, y, 80, 20)
+        pygame.draw.rect(self.screen, (40, 40, 40), pause_rect)
+        pygame.draw.rect(self.screen, pause_color, pause_rect, 1)
+        pause_btn_text = self.font.render(pause_text, True, pause_color)
+        pause_text_rect = pause_btn_text.get_rect(center=pause_rect.center)
+        self.screen.blit(pause_btn_text, pause_text_rect)
+        
+        # Store pause button rect for click detection
+        if not hasattr(self, 'speed_panel_buttons'):
+            self.speed_panel_buttons = {}
+        self.speed_panel_buttons['pause'] = pause_rect
+        
+        # Speed buttons
+        speeds = [1, 2, 5, 10]
+        button_width = 60
+        for i, spd in enumerate(speeds):
+            button_x = x + (i * (button_width + 5))
+            button_y = y + 30
+            speed_rect = pygame.Rect(button_x, button_y, button_width, 20)
+            
+            # Button styling
+            is_current = (self.speed == spd)
+            button_color = YELLOW if is_current else (60, 60, 60)
+            border_color = YELLOW if is_current else WHITE
+            
+            pygame.draw.rect(self.screen, button_color if is_current else (40, 40, 40), speed_rect)
+            pygame.draw.rect(self.screen, border_color, speed_rect, 1)
+            
+            speed_text = self.font.render(f"{spd}x", True, WHITE)
+            speed_text_rect = speed_text.get_rect(center=speed_rect.center)
+            self.screen.blit(speed_text, speed_text_rect)
+            
+            # Store button rect for click detection
+            self.speed_panel_buttons[f'speed_{spd}'] = speed_rect
+    
+    def draw_help_content(self, x, y, width, height):
+        """Draw help content"""
+        help_text = self.font.render("Help & Controls", True, YELLOW)
+        self.screen.blit(help_text, (x, y))
+        
+        # Add help text content here
+        help_lines = [
+            "Mouse: Click tiles to interact",
+            "Mouse Wheel: Zoom in/out",  
+            "Space: Pause/unpause",
+            "F1: Toggle debug mode",
+            "Ctrl+S: Save game",
+            "Ctrl+L: Load game"
+        ]
+        
+        for i, line in enumerate(help_lines):
+            line_y = y + 25 + i * 18
+            if line_y < y + height - 20:
+                line_text = self.small_font.render(line, True, WHITE)
+                self.screen.blit(line_text, (x, line_y))
     
     def get_menu_item_rect(self, index):
         """Get the rectangle for a menu item for mouse detection"""
@@ -1625,10 +1719,10 @@ class FieldStation:
         
         # Location options
         for i, location in enumerate(self.available_locations):
-            y_pos = 400 + i * 50
-            location_rect = pygame.Rect(SCREEN_WIDTH // 2 - 300, y_pos, 600, 40)
+            y_pos = 400 + i * 40
+            location_rect = pygame.Rect(SCREEN_WIDTH // 2 - 300, y_pos, 600, 35)
             
-            if i == self.setup_location_selection and not self.setup_name_input_active:
+            if i == self.setup_location_selection and not self.setup_name_input_active and self.setup_season_selection == -1:
                 pygame.draw.rect(self.screen, (60, 60, 60), location_rect)
                 pygame.draw.rect(self.screen, YELLOW, location_rect, 3)
                 prefix = "> "
@@ -1643,9 +1737,34 @@ class FieldStation:
             location_text_rect = location_text.get_rect(left=location_rect.left + 10, centery=location_rect.centery)
             self.screen.blit(location_text, location_text_rect)
         
+        # Season selection section
+        season_label = self.menu_font.render("Starting Season:", True, WHITE)
+        season_label_rect = season_label.get_rect(center=(SCREEN_WIDTH // 2, 480))
+        self.screen.blit(season_label, season_label_rect)
+        
+        # Season options
+        for i, (season_name, season_desc) in enumerate(self.available_seasons):
+            y_pos = 510 + i * 40
+            season_rect = pygame.Rect(SCREEN_WIDTH // 2 - 300, y_pos, 600, 35)
+            
+            if i == self.setup_season_selection and not self.setup_name_input_active and self.setup_season_selection >= 0:
+                pygame.draw.rect(self.screen, (60, 60, 60), season_rect)
+                pygame.draw.rect(self.screen, GREEN, season_rect, 3)
+                prefix = "> "
+                color = GREEN
+            else:
+                pygame.draw.rect(self.screen, (30, 30, 30), season_rect)
+                pygame.draw.rect(self.screen, GRAY, season_rect, 1)
+                prefix = "  "
+                color = WHITE
+            
+            season_text = self.font.render(f"{prefix}{season_name} - {season_desc}", True, color)
+            season_text_rect = season_text.get_rect(left=season_rect.left + 10, centery=season_rect.centery)
+            self.screen.blit(season_text, season_text_rect)
+        
         # Start Game button
-        start_button_rect = pygame.Rect(SCREEN_WIDTH // 2 - 100, 600, 200, 50)
-        can_start = bool(self.farm_name.strip())
+        start_button_rect = pygame.Rect(SCREEN_WIDTH // 2 - 100, 680, 200, 50)
+        can_start = bool(self.farm_name.strip()) and self.setup_season_selection >= 0
         
         if can_start:
             pygame.draw.rect(self.screen, (0, 100, 0), start_button_rect)
@@ -1663,15 +1782,17 @@ class FieldStation:
         # Instructions
         if self.setup_name_input_active:
             instructions = self.small_font.render("Type your farm name, then press ENTER/TAB to continue", True, LIGHT_GREEN)
+        elif self.setup_season_selection == -1:
+            instructions = self.small_font.render("Use arrow keys to select location, ENTER to continue to season selection", True, LIGHT_GREEN)
         else:
-            instructions = self.small_font.render("Use arrow keys to select location, ENTER to start game", True, LIGHT_GREEN)
+            instructions = self.small_font.render("Use arrow keys to select starting season, ENTER to start game", True, LIGHT_GREEN)
         
-        inst_rect = instructions.get_rect(center=(SCREEN_WIDTH // 2, 700))
+        inst_rect = instructions.get_rect(center=(SCREEN_WIDTH // 2, 750))
         self.screen.blit(instructions, inst_rect)
         
         # Back instruction
         back_text = self.small_font.render("ESC - Back to Main Menu", True, GRAY)
-        back_rect = back_text.get_rect(center=(SCREEN_WIDTH // 2, 730))
+        back_rect = back_text.get_rect(center=(SCREEN_WIDTH // 2, 770))
         self.screen.blit(back_text, back_rect)
     
     def draw_placeholder_screen(self, title):
@@ -1984,17 +2105,31 @@ class FieldStation:
                         if len(self.farm_name) < 30:  # Limit name length
                             self.farm_name += event.unicode
             else:
-                # Handle location selection
-                if event.key == pygame.K_UP:
-                    self.setup_location_selection = (self.setup_location_selection - 1) % len(self.available_locations)
-                elif event.key == pygame.K_DOWN:
-                    self.setup_location_selection = (self.setup_location_selection + 1) % len(self.available_locations)
-                elif event.key == pygame.K_RETURN:
-                    # Start the game with selected settings
-                    self.start_new_game_with_setup()
-                elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_TAB:
-                    # Go back to name input
-                    self.setup_name_input_active = True
+                # Handle location/season selection navigation
+                if self.setup_season_selection == -1:
+                    # In location selection mode
+                    if event.key == pygame.K_UP:
+                        self.setup_location_selection = (self.setup_location_selection - 1) % len(self.available_locations)
+                    elif event.key == pygame.K_DOWN:
+                        self.setup_location_selection = (self.setup_location_selection + 1) % len(self.available_locations)
+                    elif event.key == pygame.K_RETURN:
+                        # Move to season selection
+                        self.setup_season_selection = 0
+                    elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_TAB:
+                        # Go back to name input
+                        self.setup_name_input_active = True
+                else:
+                    # In season selection mode
+                    if event.key == pygame.K_UP:
+                        self.setup_season_selection = (self.setup_season_selection - 1) % len(self.available_seasons)
+                    elif event.key == pygame.K_DOWN:
+                        self.setup_season_selection = (self.setup_season_selection + 1) % len(self.available_seasons)
+                    elif event.key == pygame.K_RETURN:
+                        # Start the game with selected settings
+                        self.start_new_game_with_setup()
+                    elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_TAB:
+                        # Go back to location selection
+                        self.setup_season_selection = -1
         
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left click
@@ -2008,13 +2143,21 @@ class FieldStation:
                 # Check if clicking on location options
                 elif not self.setup_name_input_active:
                     for i, location in enumerate(self.available_locations):
-                        location_rect = pygame.Rect(SCREEN_WIDTH // 2 - 300, 400 + i * 50, 600, 40)
+                        location_rect = pygame.Rect(SCREEN_WIDTH // 2 - 300, 400 + i * 40, 600, 35)
                         if location_rect.collidepoint(mouse_pos):
                             self.setup_location_selection = i
+                            self.setup_season_selection = -1  # Switch to location mode
+                            break
+                    
+                    # Check if clicking on season options
+                    for i, (season_name, season_desc) in enumerate(self.available_seasons):
+                        season_rect = pygame.Rect(SCREEN_WIDTH // 2 - 300, 510 + i * 40, 600, 35)
+                        if season_rect.collidepoint(mouse_pos):
+                            self.setup_season_selection = i
                             break
                 
                 # Check if clicking on Start Game button
-                start_button_rect = pygame.Rect(SCREEN_WIDTH // 2 - 100, 600, 200, 50)
+                start_button_rect = pygame.Rect(SCREEN_WIDTH // 2 - 100, 680, 200, 50)
                 if start_button_rect.collidepoint(mouse_pos) and self.farm_name.strip():
                     self.start_new_game_with_setup()
         
@@ -2025,10 +2168,15 @@ class FieldStation:
         if not self.farm_name.strip():
             return  # Don't start without a name
         
+        # Only start if both location and season are selected
+        if self.setup_season_selection < 0:
+            return  # Season not selected yet
+        
         self.farm_location = self.available_locations[self.setup_location_selection]
         self.game_state = GameState.GAME
         self.reset_game()
         self.apply_location_settings()
+        self.apply_season_settings()
         self.game_in_progress = True
     
     def apply_location_settings(self):
@@ -2043,6 +2191,14 @@ class FieldStation:
                     tile.soil_quality = random.uniform(0.6, 0.9)  # Rich prairie soil
                     tile.moisture = random.uniform(0.4, 0.7)     # Moderate moisture
                     tile.nitrogen = random.uniform(0.5, 0.8)     # Good nitrogen from prairie
+    
+    def apply_season_settings(self):
+        """Apply the selected starting season"""
+        season_mapping = [Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER]
+        if 0 <= self.setup_season_selection < len(season_mapping):
+            self.season = season_mapping[self.setup_season_selection]
+        else:
+            self.season = Season.SPRING  # Default fallback
     
     def handle_menu_event(self, event):
         """Handle events in the menu"""
@@ -2193,13 +2349,21 @@ class FieldStation:
         self.zoom_level = auto_zoom
         
         # Center the camera on the middle of the grid
-        # Calculate the center point of the grid in world coordinates
-        center_x = (GRID_WIDTH - 1) * TILE_WIDTH // 2
-        center_y = (GRID_HEIGHT - 1) * TILE_HEIGHT // 2
+        # For a 3x3 grid, the center tile is at (1, 1)
+        # Calculate the screen position of the center tile using isometric conversion
+        center_grid_x, center_grid_y = 1, 1  # Center of 3x3 grid
         
-        # Position camera so grid center appears at screen center
-        self.camera_x = SCREEN_WIDTH // 2 - center_x * self.zoom_level
-        self.camera_y = SCREEN_HEIGHT // 2 - center_y * self.zoom_level
+        # Calculate where this center tile would appear with no camera offset
+        tile_w = int(TILE_WIDTH * self.zoom_level)
+        tile_h = int(TILE_HEIGHT * self.zoom_level)
+        
+        # Isometric conversion for center tile
+        center_world_x = (center_grid_x - center_grid_y) * tile_w // 2
+        center_world_y = (center_grid_x + center_grid_y) * tile_h // 2
+        
+        # Position camera so the center tile appears at screen center
+        self.camera_x = SCREEN_WIDTH // 2 - center_world_x
+        self.camera_y = SCREEN_HEIGHT // 2 - center_world_y
     
     def handle_event(self, event):
         """Handle pygame events"""
@@ -2322,14 +2486,9 @@ class FieldStation:
                             if self.debug_mode:
                                 self.show_message(f"✓ Opened popup for tile {grid_pos}", GREEN, 2000)
                         else:
-                            # Try a backup method - brute force check all tiles
-                            backup_tile = self.find_closest_tile(mouse_x, mouse_y)
-                            if backup_tile:
-                                self.open_tile_popup(backup_tile)
-                                self.selected_tile_pos = backup_tile
-                                if self.debug_mode:
-                                    self.show_message(f"✓ Backup method found tile {backup_tile}", GREEN, 2000)
-                            else:
+                            # No tile selected - clicking in dead space is fine
+                            if self.debug_mode:
+                                self.show_message("Dead space click - no tile selected", YELLOW, 2000)
                                 # Clicking on empty area - close popup but don't start dragging yet
                                 self.close_tile_popup()
                                 self.selected_tile_pos = None
@@ -2351,13 +2510,27 @@ class FieldStation:
                 if event.button == 1:
                     self.mouse_down = False
                     self.mouse_dragging = False
+                    self.dragging_panel = None  # Stop panel dragging
                 elif event.button == 2:
                     self.mouse_dragging = False
             
             elif event.type == pygame.MOUSEMOTION:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 
-                if self.mouse_dragging:
+                # Handle panel dragging first
+                if self.dragging_panel:
+                    panel_data = self.modular_panels[self.dragging_panel]
+                    new_x = mouse_x - self.drag_offset[0]
+                    new_y = mouse_y - self.drag_offset[1]
+                    
+                    # Keep panel on screen
+                    new_x = max(0, min(SCREEN_WIDTH - panel_data['rect'].width, new_x))
+                    new_y = max(0, min(SCREEN_HEIGHT - panel_data['rect'].height, new_y))
+                    
+                    panel_data['rect'].x = new_x
+                    panel_data['rect'].y = new_y
+                
+                elif self.mouse_dragging:
                     # Pan camera based on mouse movement
                     start_x, start_y = self.drag_start
                     
@@ -2425,27 +2598,106 @@ class FieldStation:
         # UI elements are now directly on the game area (no grey bar)
         # Check if clicking in the UI areas
         
-        # Pause button area
-        x_offset = 10
-        y_offset = 15
-        pause_rect = pygame.Rect(x_offset, y_offset, 80, 25)
+        # Old top-left UI controls REMOVED (now handled by modular speed panel)
+        # All pause and speed button clicks now handled in modular panels section
         
-        if pause_rect.collidepoint(mouse_x, mouse_y):
-            self.paused = not self.paused
-            return True
-        
-        # Speed buttons - match the drawing layout
-        pause_width = 80  # Approximate pause button width
-        speed_x = x_offset + pause_width + 20
-        speeds = [1, 2, 5]  # Banished-like progression
-        for i, spd in enumerate(speeds):
-            button_rect = pygame.Rect(speed_x + i * 60, y_offset - 2, 55, 25)
-            if button_rect.collidepoint(mouse_x, mouse_y):
-                self.speed = spd
+        # Check modular UI icons (bottom-right)
+        for icon_name, icon_data in self.ui_icons.items():
+            icon_rect = pygame.Rect(icon_data['pos'][0] - self.icon_size//2, icon_data['pos'][1] - self.icon_size//2, self.icon_size, self.icon_size)
+            if icon_rect.collidepoint(mouse_x, mouse_y):
+                if icon_name == 'settings':
+                    # Settings goes to main menu
+                    self.game_in_progress = True
+                    self.update_menu_options()
+                    self.game_state = GameState.MENU
+                else:
+                    # Other icons toggle panels
+                    self.toggle_modular_panel(icon_name)
                 return True
         
+        # Check if clicking on modular panel header for dragging or content for interaction
+        for panel_id, panel_data in self.modular_panels.items():
+            if panel_data.get('visible', False):
+                panel_rect = panel_data['rect']
+                
+                # Check if clicking anywhere on the panel
+                if panel_rect.collidepoint(mouse_x, mouse_y):
+                    header_rect = pygame.Rect(panel_rect.x, panel_rect.y, panel_rect.width, 30)
+                    
+                    # Check header area for dragging/closing
+                    if header_rect.collidepoint(mouse_x, mouse_y):
+                        # Check close button first
+                        close_rect = pygame.Rect(panel_rect.x + panel_rect.width - 25, panel_rect.y + 5, 20, 20)
+                        if close_rect.collidepoint(mouse_x, mouse_y):
+                            self.close_modular_panel(panel_id)
+                        else:
+                            # Start dragging
+                            self.dragging_panel = panel_id
+                            self.drag_offset = (mouse_x - panel_rect.x, mouse_y - panel_rect.y)
+                        return True
+                    
+                    # Check content area for interactive elements
+                    elif panel_id == 'speed' and hasattr(self, 'speed_panel_buttons'):
+                        for button_id, button_rect in self.speed_panel_buttons.items():
+                            if button_rect.collidepoint(mouse_x, mouse_y):
+                                if button_id == 'pause':
+                                    self.paused = not self.paused
+                                elif button_id.startswith('speed_'):
+                                    speed_value = int(button_id.split('_')[1])
+                                    self.speed = speed_value
+                                return True
+                    
+                    # If we clicked in the panel but didn't handle it, still consume the click
+                    return True
         
         return False
+    
+    def toggle_modular_panel(self, panel_type):
+        """Toggle visibility of a modular panel"""
+        if panel_type in self.modular_panels:
+            # Panel exists, toggle visibility
+            self.modular_panels[panel_type]['visible'] = not self.modular_panels[panel_type]['visible']
+        else:
+            # Create new panel
+            self.create_modular_panel(panel_type)
+    
+    def create_modular_panel(self, panel_type):
+        """Create a new modular panel"""
+        # Default panel positions (staggered)
+        base_x = SCREEN_WIDTH - 320
+        base_y = 100 + len(self.modular_panels) * 50
+        
+        # Panel titles
+        titles = {
+            'field_study': 'Field Study',
+            'resources': 'Resources',
+            'speed': 'Speed Controls',
+            'help': 'Help & Controls'
+        }
+        
+        panel_data = {
+            'type': panel_type,
+            'title': titles.get(panel_type, panel_type.title()),
+            'visible': True,
+            'rect': pygame.Rect(base_x, base_y, 300, 200)  # Default size
+        }
+        
+        # Adjust size based on panel type
+        if panel_type == 'field_study':
+            panel_data['rect'].height = 150
+        elif panel_type == 'resources':
+            panel_data['rect'].height = 100
+        elif panel_type == 'speed':
+            panel_data['rect'].height = 80
+        elif panel_type == 'help':
+            panel_data['rect'].height = 120
+        
+        self.modular_panels[panel_type] = panel_data
+    
+    def close_modular_panel(self, panel_id):
+        """Close a modular panel"""
+        if panel_id in self.modular_panels:
+            self.modular_panels[panel_id]['visible'] = False
     
     def open_tile_popup(self, grid_pos):
         """Open the Banished-style tile popup interface"""
@@ -2564,8 +2816,28 @@ class FieldStation:
         title_y = self.popup_rect.y + 10
         self.screen.blit(title_text, (title_x, title_y))
         
-        # Current crop status
+        # Soil information with color coding (moved from left panel)
         current_y = title_y + 30
+        
+        # Soil quality
+        soil_color = GREEN if tile.soil_quality > 0.7 else YELLOW if tile.soil_quality > 0.4 else RED
+        soil_text = self.small_font.render(f"Soil Quality: {tile.soil_quality:.2f}", True, soil_color)
+        self.screen.blit(soil_text, (title_x, current_y))
+        current_y += 18
+        
+        # Moisture
+        moisture_color = BLUE if tile.moisture > 0.5 else LIGHT_BROWN
+        moisture_text = self.small_font.render(f"Moisture: {tile.moisture:.2f}", True, moisture_color)
+        self.screen.blit(moisture_text, (title_x, current_y))
+        current_y += 18
+        
+        # Nitrogen
+        nitrogen_color = GREEN if tile.nitrogen > 0.5 else YELLOW if tile.nitrogen > 0.3 else RED
+        nitrogen_text = self.small_font.render(f"Nitrogen: {tile.nitrogen:.2f}", True, nitrogen_color)
+        self.screen.blit(nitrogen_text, (title_x, current_y))
+        current_y += 25
+        
+        # Current crop status
         if tile.crop:
             crop_name = self.get_short_crop_name(tile.crop)
             crop_text = f"Current: {crop_name}"
@@ -2728,8 +3000,11 @@ class FieldStation:
                 if not self.handle_event(event):
                     running = False
             
-            # Clear screen with seasonal background
-            self.screen.fill(self.get_seasonal_background_color())
+            # Clear screen - use seasonal background only for active game
+            if self.game_state == GameState.GAME:
+                self.screen.fill(self.get_seasonal_background_color())
+            else:
+                self.screen.fill(BLACK)
             
             # Draw based on current state
             if self.game_state == GameState.MENU:
