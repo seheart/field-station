@@ -327,8 +327,9 @@ class FieldStation:
         self.day = 1
         self.season = Season.SPRING
         self.weather = Weather.SUNNY
+        # Center camera on the grid - more precise calculation
         self.camera_x = SCREEN_WIDTH // 2 - (GRID_WIDTH * TILE_WIDTH) // 2
-        self.camera_y = SCREEN_HEIGHT // 2 - (GRID_HEIGHT * TILE_HEIGHT) // 2
+        self.camera_y = SCREEN_HEIGHT // 2 - (GRID_HEIGHT * TILE_HEIGHT) // 2 - 50  # Offset up slightly for UI
         self.paused = False
         self.speed = 1  # Game speed multiplier
         self.last_day_update = pygame.time.get_ticks()
@@ -360,44 +361,62 @@ class FieldStation:
         self.debug_mode = False
     
     def screen_to_grid(self, x, y) -> Optional[Tuple[int, int]]:
-        """Convert screen coordinates to grid coordinates with improved accuracy"""
-        # Adjust for camera
-        x -= self.camera_x
-        y -= self.camera_y
+        """Convert screen coordinates to grid coordinates - SIMPLIFIED AND ROBUST"""
+        # Adjust for camera offset
+        world_x = x - self.camera_x
+        world_y = y - self.camera_y
         
         # Apply zoom to tile size
         tile_w = TILE_WIDTH * self.zoom_level
         tile_h = TILE_HEIGHT * self.zoom_level
         
-        # Improved isometric conversion with rounding for better click detection
-        # This gives more generous hit boxes for tiles
-        grid_x = (x / tile_w + y / tile_h) / 2
-        grid_y = (y / tile_h - x / tile_w) / 2
+        # Isometric coordinate conversion
+        # Standard isometric formula: 
+        # grid_x = (world_x / tile_w + world_y / tile_h) / 2
+        # grid_y = (world_y / tile_h - world_x / tile_w) / 2
+        grid_x_float = (world_x / tile_w + world_y / tile_h) / 2
+        grid_y_float = (world_y / tile_h - world_x / tile_w) / 2
         
-        # Round instead of truncate for better feel
-        grid_x = round(grid_x)
-        grid_y = round(grid_y)
+        # Round to nearest grid position for generous clicking
+        grid_x = round(grid_x_float)
+        grid_y = round(grid_y_float)
         
-        # Check if within bounds
+        # Simple bounds check
         if 0 <= grid_x < GRID_WIDTH and 0 <= grid_y < GRID_HEIGHT:
-            # Additional check: verify the click is actually within the tile diamond
-            # Get center of the tile
-            tile_center_x, tile_center_y = self.grid_to_screen(grid_x, grid_y)
-            tile_center_x -= self.camera_x
-            tile_center_y -= self.camera_y
+            # MUCH more generous tolerance - if we're close to a valid grid position, accept it
+            # This makes clicking much more forgiving
+            tolerance = 0.8  # Very generous - almost any click near a tile works
             
-            # Check if click is within reasonable distance of tile center
-            # This prevents clicks on edges from selecting wrong tiles
-            dx = abs(x - tile_center_x)
-            dy = abs(y - tile_center_y)
+            dx = abs(grid_x_float - grid_x)
+            dy = abs(grid_y_float - grid_y)
             
-            # Zoom-aware tolerance - more generous at high zoom for easier clicking
-            tolerance = min(1.0, max(0.6, 0.5 + self.zoom_level * 0.1))
-            
-            # Allow clicks within the diamond shape with zoom-adjusted padding
-            if dx / tile_w + dy / tile_h <= tolerance:
+            if dx <= tolerance and dy <= tolerance:
                 return (grid_x, grid_y)
+        
         return None
+    
+    def find_closest_tile(self, screen_x, screen_y) -> Optional[Tuple[int, int]]:
+        """Backup method: find the closest tile to a screen click using brute force"""
+        closest_tile = None
+        min_distance = float('inf')
+        
+        for grid_y in range(GRID_HEIGHT):
+            for grid_x in range(GRID_WIDTH):
+                # Get the center of this tile
+                tile_center_x, tile_center_y = self.grid_to_screen(grid_x, grid_y)
+                
+                # Calculate distance from click to tile center
+                dx = screen_x - tile_center_x
+                dy = screen_y - tile_center_y
+                distance = (dx * dx + dy * dy) ** 0.5
+                
+                # Check if this is the closest tile and within reasonable range
+                max_distance = 100 * self.zoom_level  # Generous click radius
+                if distance < min_distance and distance < max_distance:
+                    min_distance = distance
+                    closest_tile = (grid_x, grid_y)
+        
+        return closest_tile
     
     def grid_to_screen(self, grid_x, grid_y) -> Tuple[int, int]:
         """Convert grid coordinates to screen coordinates"""
@@ -2153,7 +2172,9 @@ class FieldStation:
                         grid_pos = self.screen_to_grid(mouse_x, mouse_y)
                         
                         if self.debug_mode:
-                            self.show_message(f"Click at ({mouse_x}, {mouse_y}) -> {grid_pos}", WHITE, 2000)
+                            world_x = mouse_x - self.camera_x
+                            world_y = mouse_y - self.camera_y
+                            self.show_message(f"Click: screen({mouse_x}, {mouse_y}) world({world_x:.1f}, {world_y:.1f}) -> {grid_pos}", WHITE, 3000)
                         
                         if grid_pos:
                             # Open tile popup immediately - like Banished
@@ -2161,14 +2182,22 @@ class FieldStation:
                             self.selected_tile_pos = grid_pos  # Also select the tile
                             
                             if self.debug_mode:
-                                self.show_message(f"Opened popup for tile {grid_pos}", GREEN, 2000)
+                                self.show_message(f"✓ Opened popup for tile {grid_pos}", GREEN, 2000)
                         else:
-                            # Clicking on empty area - close popup but don't start dragging yet
-                            self.close_tile_popup()
-                            self.selected_tile_pos = None
-                            
-                            if self.debug_mode:
-                                self.show_message("Clicked empty area", YELLOW, 2000)
+                            # Try a backup method - brute force check all tiles
+                            backup_tile = self.find_closest_tile(mouse_x, mouse_y)
+                            if backup_tile:
+                                self.open_tile_popup(backup_tile)
+                                self.selected_tile_pos = backup_tile
+                                if self.debug_mode:
+                                    self.show_message(f"✓ Backup method found tile {backup_tile}", GREEN, 2000)
+                            else:
+                                # Clicking on empty area - close popup but don't start dragging yet
+                                self.close_tile_popup()
+                                self.selected_tile_pos = None
+                                
+                                if self.debug_mode:
+                                    self.show_message("✗ No tile found", YELLOW, 2000)
                         
                         # Set up potential dragging (but don't start yet)
                         self.mouse_down = True
