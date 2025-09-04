@@ -192,6 +192,7 @@ class GameState(Enum):
     OPTIONS = 6
     HELP = 7
     FARM_SETUP = 8
+    PAUSE_MENU = 9
 
 class FieldStation:
     def __init__(self):
@@ -231,6 +232,7 @@ class FieldStation:
         self.game_in_progress = False  # Track if there's a game to return to
         self.update_menu_options()
         self.update_options_items()
+        self.update_pause_menu_options()
         
         # Tile selection
         self.selected_tile_pos = None
@@ -359,6 +361,9 @@ class FieldStation:
         
         # Debug mode (toggle with F1)
         self.debug_mode = False
+        
+        # UI elements
+        self.settings_button_rect = None
     
     def screen_to_grid(self, x, y) -> Optional[Tuple[int, int]]:
         """Convert screen coordinates to grid coordinates - SIMPLIFIED AND ROBUST"""
@@ -1459,8 +1464,34 @@ class FieldStation:
         # Bottom bar - organized layout
         self.draw_bottom_bar()
         
+        # Settings gear icon in top-right corner
+        self.draw_settings_button()
+        
         
         # Remove instructions - moved to Help section
+    
+    def draw_settings_button(self):
+        """Draw settings gear icon in top-right corner"""
+        # Settings button position
+        settings_size = 32
+        settings_x = SCREEN_WIDTH - settings_size - 10
+        settings_y = 10
+        
+        # Store rect for click detection
+        self.settings_button_rect = pygame.Rect(settings_x, settings_y, settings_size, settings_size)
+        
+        # Draw button background
+        pygame.draw.rect(self.screen, (60, 60, 60), self.settings_button_rect)
+        pygame.draw.rect(self.screen, WHITE, self.settings_button_rect, 2)
+        
+        # Draw gear icon (⚙ or simplified gear shape)
+        center_x = settings_x + settings_size // 2
+        center_y = settings_y + settings_size // 2
+        
+        # Simple gear representation
+        gear_text = self.ui_font.render("⚙", True, WHITE)
+        gear_rect = gear_text.get_rect(center=(center_x, center_y))
+        self.screen.blit(gear_text, gear_rect)
     
     def get_menu_item_rect(self, index):
         """Get the rectangle for a menu item for mouse detection"""
@@ -1469,17 +1500,39 @@ class FieldStation:
     def draw_menu(self):
         """Draw the main menu"""
         # Title
-        title = self.menu_title_font.render("FARM SIMULATOR", True, GREEN)
+        title = self.menu_title_font.render("FIELD STATION", True, GREEN)
         title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 150))
         self.screen.blit(title, title_rect)
         
-        subtitle = self.ui_font.render("Data-Driven Agricultural Management", True, LIGHT_GREEN)
+        subtitle = self.ui_font.render("Scientific Field Research Simulation", True, LIGHT_GREEN)
         subtitle_rect = subtitle.get_rect(center=(SCREEN_WIDTH // 2, 210))
         self.screen.blit(subtitle, subtitle_rect)
         
         # Menu options
         mouse_pos = pygame.mouse.get_pos()
-        for i, option in enumerate(self.menu_options):
+        self.draw_menu_options(self.menu_options)
+    
+    def draw_pause_menu(self):
+        """Draw the pause menu with semi-transparent background"""
+        # Semi-transparent overlay
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        overlay.set_alpha(128)
+        overlay.fill(BLACK)
+        self.screen.blit(overlay, (0, 0))
+        
+        # Title
+        title = self.menu_font.render("GAME PAUSED", True, WHITE)
+        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 200))
+        self.screen.blit(title, title_rect)
+        
+        # Menu options
+        mouse_pos = pygame.mouse.get_pos()
+        self.draw_menu_options(self.pause_menu_options)
+    
+    def draw_menu_options(self, options):
+        """Draw menu options (shared between main menu and pause menu)"""
+        mouse_pos = pygame.mouse.get_pos()
+        for i, option in enumerate(options):
             # Check if mouse is hovering over this item
             item_rect = self.get_menu_item_rect(i)
             if item_rect.collidepoint(mouse_pos):
@@ -1726,6 +1779,10 @@ class FieldStation:
             self.menu_options = ["Continue Game", "Save Game", "New Game", "Load Game", "Tutorials", "Achievements", "Options", "Exit"]
         else:
             self.menu_options = ["New Game", "Load Game", "Tutorials", "Achievements", "Options", "Exit"]
+    
+    def update_pause_menu_options(self):
+        """Update pause menu options"""
+        self.pause_menu_options = ["Resume Game", "Save Game", "Load Game", "Settings", "Main Menu", "Exit Game"]
     
     def update_options_items(self):
         """Update the options menu items"""
@@ -1986,6 +2043,53 @@ class FieldStation:
         
         return True
     
+    def handle_pause_menu_event(self, event):
+        """Handle events in the pause menu"""
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                # ESC in pause menu returns to game
+                self.game_state = GameState.GAME
+                return True
+            elif event.key == pygame.K_UP:
+                self.menu_selection = (self.menu_selection - 1) % len(self.pause_menu_options)
+            elif event.key == pygame.K_DOWN:
+                self.menu_selection = (self.menu_selection + 1) % len(self.pause_menu_options)
+            elif event.key == pygame.K_RETURN:
+                return self.activate_pause_menu_item()
+        
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Left click
+                mouse_pos = pygame.mouse.get_pos()
+                for i in range(len(self.pause_menu_options)):
+                    if self.get_menu_item_rect(i).collidepoint(mouse_pos):
+                        self.menu_selection = i
+                        return self.activate_pause_menu_item()
+        
+        return True
+    
+    def activate_pause_menu_item(self):
+        """Activate the currently selected pause menu item"""
+        selected = self.pause_menu_options[self.menu_selection]
+        if selected == "Resume Game":
+            self.game_state = GameState.GAME
+        elif selected == "Save Game":
+            self.save_game()
+            # Stay in pause menu
+        elif selected == "Load Game":
+            if self.load_game():
+                self.game_state = GameState.GAME
+            # If load failed, stay in pause menu
+        elif selected == "Settings":
+            self.previous_game_state = GameState.PAUSE_MENU
+            self.game_state = GameState.OPTIONS
+            self.update_options_items()
+        elif selected == "Main Menu":
+            self.game_state = GameState.MENU
+            self.update_menu_options()
+        elif selected == "Exit Game":
+            return False
+        return True
+    
     def activate_menu_item(self):
         """Activate the currently selected menu item"""
         selected = self.menu_options[self.menu_selection]
@@ -2080,6 +2184,10 @@ class FieldStation:
         elif self.game_state == GameState.OPTIONS:
             return self.handle_options_event(event)
         
+        # Pause menu
+        elif self.game_state == GameState.PAUSE_MENU:
+            return self.handle_pause_menu_event(event)
+        
         # Interface controls screen (using TUTORIALS state)
         elif self.game_state == GameState.TUTORIALS:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
@@ -2106,10 +2214,10 @@ class FieldStation:
         elif self.game_state == GameState.GAME:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    # Go to main menu but remember we have a game in progress
+                    # Go to pause menu instead of main menu for better UX
                     self.game_in_progress = True
-                    self.update_menu_options()
-                    self.game_state = GameState.MENU
+                    self.previous_game_state = GameState.GAME
+                    self.game_state = GameState.PAUSE_MENU
                     return True
                 
                 # Add keys to pressed set for continuous movement
@@ -2275,6 +2383,14 @@ class FieldStation:
             if self.popup_rect and self.popup_rect.collidepoint(mouse_x, mouse_y):
                 self.handle_popup_click(mouse_x, mouse_y)
                 return True
+        
+        # Check settings button first
+        if hasattr(self, 'settings_button_rect') and self.settings_button_rect and self.settings_button_rect.collidepoint(mouse_x, mouse_y):
+            # Open pause menu when settings is clicked
+            self.game_in_progress = True
+            self.previous_game_state = GameState.GAME
+            self.game_state = GameState.PAUSE_MENU
+            return True
         
         # UI elements are now directly on the game area (no grey bar)
         # Check if clicking in the UI areas
@@ -2656,6 +2772,15 @@ class FieldStation:
             
             elif self.game_state == GameState.HELP:
                 self.draw_help_screen()
+            
+            elif self.game_state == GameState.PAUSE_MENU:
+                # Draw the game in the background first
+                self.screen.fill(BLACK)
+                self.draw_grid()
+                self.draw_ui()
+                
+                # Then draw pause menu overlay
+                self.draw_pause_menu()
             
             # Update display
             pygame.display.flip()
