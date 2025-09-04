@@ -1,5 +1,11 @@
 # 🌽 Field Station v1.0
 
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Pygame](https://img.shields.io/badge/Pygame-2.0+-green.svg)](https://www.pygame.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Educational](https://img.shields.io/badge/Use-Educational-purple.svg)](README.md)
+[![Field Research](https://img.shields.io/badge/Focus-Field%20Research-brown.svg)](README.md)
+
 A data-driven field research simulation built with Python and Pygame, featuring scientifically accurate crop varieties and location-based research mechanics.
 
 ## ✨ Features
