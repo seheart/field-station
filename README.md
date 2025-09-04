@@ -64,7 +64,7 @@ Field Station is designed for educational integration:
 
 - **[Game Strategy](GAME_STRATEGY.md)**: Detailed project vision, design philosophy, and development approach
 - **[Development Roadmap](DEVELOPMENT_ROADMAP.md)**: Comprehensive development plan and feature roadmap
-- **[Game Data](game_data.html)**: Interactive crop information and gameplay mechanics
+- **[Game Data](GAME_DATA.md)**: Complete simulation data and crop information reference
 
 ## 🧪 Testing
 
