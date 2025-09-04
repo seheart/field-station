@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Farming Game - Data Reference</title>
+    <title>Field Station - Data Reference</title>
     <style>
         body {
             font-family: 'Consolas', 'Monaco', monospace;
@@ -90,13 +90,13 @@
 </head>
 <body>
     <div class="header">
-        <h1>🚜 Data-Driven Farming Simulator</h1>
-        <p>Game Variables and Data Ranges Reference</p>
+        <h1>🔬 Field Station - Data-Driven Research Simulation</h1>
+        <p>Field Research Variables and Data Ranges Reference</p>
     </div>
 
     <div class="section">
         <h2>🌱 Crop Types</h2>
-        <p>All available crops with their characteristics and requirements:</p>
+        <p>All available research crops with their scientific characteristics and field requirements:</p>
         
         <div class="crop-grid">
             <div class="crop-card">
@@ -394,25 +394,217 @@
             <tr>
                 <td><strong>Crop Growth</strong></td>
                 <td><span style="color: #22c55e;">Green</span> / <span style="color: #eab308;">Yellow</span></td>
-                <td>Ready to harvest / Still growing</td>
+                <td>Ready for research harvest / Still growing</td>
             </tr>
         </table>
     </div>
 
     <div class="section">
+        <h2>🎮 Controls & Interface</h2>
+        <div class="crop-grid">
+            <div class="crop-card">
+                <div class="crop-name">🖱️ Mouse Controls</div>
+                <ul>
+                    <li><strong>Left Click:</strong> Open tile popup</li>
+                    <li><strong>Mouse Wheel:</strong> Zoom in/out (0.3x to 10x)</li>
+                    <li><strong>Drag:</strong> Pan camera (after 5px movement)</li>
+                    <li><strong>Middle Mouse:</strong> Immediate camera dragging</li>
+                    <li><strong>Hover:</strong> Show crop tooltips with full names</li>
+                </ul>
+            </div>
+            <div class="crop-card">
+                <div class="crop-name">⌨️ Keyboard Shortcuts</div>
+                <ul>
+                    <li><strong>Space:</strong> Pause/unpause game</li>
+                    <li><strong>P:</strong> Plant crop on selected tile</li>
+                    <li><strong>H:</strong> Harvest crop from selected tile</li>
+                    <li><strong>A:</strong> Toggle auto-harvest</li>
+                    <li><strong>+/-:</strong> Speed up/slow down time</li>
+                    <li><strong>Ctrl+S:</strong> Save game</li>
+                    <li><strong>Ctrl+L:</strong> Load game</li>
+                    <li><strong>F1:</strong> Toggle debug mode</li>
+                    <li><strong>ESC:</strong> Return to menu</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>💾 Save & Load System</h2>
+        <p>Full field research session persistence with JSON format saves:</p>
+        <table class="data-table">
+            <tr>
+                <th>Feature</th>
+                <th>Description</th>
+                <th>Usage</th>
+            </tr>
+            <tr>
+                <td>Quick Save</td>
+                <td>Save current research session state</td>
+                <td>Ctrl+S or Menu → Save Game</td>
+            </tr>
+            <tr>
+                <td>Quick Load</td>
+                <td>Load saved research session state</td>
+                <td>Ctrl+L or Menu → Load Game</td>
+            </tr>
+            <tr>
+                <td>Auto Directory</td>
+                <td>Creates saves/ folder automatically</td>
+                <td>All saves stored in saves/savegame.json</td>
+            </tr>
+            <tr>
+                <td>Full State</td>
+                <td>Saves field station, research budget, crops, weather, date</td>
+                <td>Complete research session restoration</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>💰 Dynamic Market System</h2>
+        <p>Seasonal price fluctuations and daily market variations:</p>
+        <table class="data-table">
+            <tr>
+                <th>Season</th>
+                <th>High-Value Crops</th>
+                <th>Low-Value Crops</th>
+                <th>Strategy</th>
+            </tr>
+            <tr>
+                <td>Spring</td>
+                <td>Wheat (+20%), Potato (+10%)</td>
+                <td>Pumpkin (-30%), Field Corn (-20%)</td>
+                <td>Plant wheat for quick profit</td>
+            </tr>
+            <tr>
+                <td>Summer</td>
+                <td>Tomato (+40%), Sweet Corn (+30%)</td>
+                <td>Wheat (-20%)</td>
+                <td>Focus on summer crops</td>
+            </tr>
+            <tr>
+                <td>Fall</td>
+                <td>Pumpkin (+50%), Field Corn (+30%), Soybean (+20%)</td>
+                <td>Sweet Corn (-30%)</td>
+                <td>Harvest season - maximum profits</td>
+            </tr>
+            <tr>
+                <td>Winter</td>
+                <td>Tomato (+10%), Wheat (+10%)</td>
+                <td>Pumpkin (-40%)</td>
+                <td>Limited planting options</td>
+            </tr>
+        </table>
+        <div class="note">
+            <strong>💡 Market Tips:</strong> Prices fluctuate ±15% daily. Watch the Market Panel for trends: ↗ HIGH (best), ↗ Good, → Fair, ↘ Poor, ↘ Low (worst).
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>⚡ Extreme Weather Events</h2>
+        <p>New weather types with real field research consequences:</p>
+        <table class="data-table">
+            <tr>
+                <th>Weather Type</th>
+                <th>Effects</th>
+                <th>Probability</th>
+                <th>Seasons</th>
+            </tr>
+            <tr>
+                <td>🌪️ Drought</td>
+                <td>Severe moisture loss (-8%), stunts growth</td>
+                <td>5% daily</td>
+                <td>Summer, Fall</td>
+            </tr>
+            <tr>
+                <td>🌊 Flood</td>
+                <td>Excessive moisture (+15%), can kill crops (15% chance)</td>
+                <td>5% daily</td>
+                <td>Spring, Summer</td>
+            </tr>
+            <tr>
+                <td>⛈️ Storm</td>
+                <td>Heavy rain (+8%), no crop damage</td>
+                <td>5% daily</td>
+                <td>Summer, Fall</td>
+            </tr>
+            <tr>
+                <td>🧊 Hail</td>
+                <td>Damages crops (30% chance), light moisture (+3%)</td>
+                <td>5% daily</td>
+                <td>Spring, Summer</td>
+            </tr>
+        </table>
+        <div class="note">
+            <strong>⚠️ Weather Strategy:</strong> Extreme weather occurs maximum once per week. Diversify crops to minimize risk. Flood is most dangerous - avoid overwatering!
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>🔧 Debug Mode (F1)</h2>
+        <p>Advanced field research troubleshooting and development features:</p>
+        <div class="crop-grid">
+            <div class="crop-card">
+                <div class="crop-name">🎯 Click Detection</div>
+                <ul>
+                    <li>Real-time mouse coordinates</li>
+                    <li>Grid position conversion</li>
+                    <li>Click success/failure messages</li>
+                    <li>Visual tile boundaries (red outlines)</li>
+                </ul>
+            </div>
+            <div class="crop-card">
+                <div class="crop-name">📊 System Info</div>
+                <ul>
+                    <li>Camera position and zoom level</li>
+                    <li>Selected tile information</li>
+                    <li>Performance diagnostics</li>
+                    <li>Tile center markers</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>✨ UI Improvements</h2>
+        <div class="crop-grid">
+            <div class="crop-card">
+                <div class="crop-name">📝 Visual Feedback</div>
+                <ul>
+                    <li><strong>Toast Messages:</strong> Success/error notifications</li>
+                    <li><strong>Progress Bars:</strong> Crop growth at high zoom (2x+)</li>
+                    <li><strong>Tooltips:</strong> Full crop names on hover</li>
+                    <li><strong>Color Coding:</strong> Green=success, Red=error, Yellow=warning</li>
+                </ul>
+            </div>
+            <div class="crop-card">
+                <div class="crop-name">🎨 Interface Panels</div>
+                <ul>
+                    <li><strong>Market Panel:</strong> Real-time prices and trends</li>
+                    <li><strong>Tile Info:</strong> Detailed soil and crop data</li>
+                    <li><strong>Farm Stats:</strong> Overview of planted/ready crops</li>
+                    <li><strong>Research-style Popups:</strong> Click tiles for field actions</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
         <h2>📊 Performance Tips</h2>
         <ul>
-            <li><strong>Maximize Profit:</strong> Plant high-value crops (Corn: $35) in high-quality soil</li>
+            <li><strong>Maximize Research Value:</strong> Plant high-value research crops (Corn: $35) in high-quality soil</li>
             <li><strong>Soil Management:</strong> Use soybeans to restore nitrogen, rotate crops</li>
             <li><strong>Season Planning:</strong> Spring offers most planting options</li>
             <li><strong>Water Management:</strong> Plant during rainy periods for best growth</li>
-            <li><strong>Harvest Timing:</strong> Harvest mature crops quickly to avoid waste</li>
+            <li><strong>Research Harvest Timing:</strong> Harvest mature crops quickly for optimal data collection</li>
         </ul>
     </div>
 
     <div style="text-align: center; margin-top: 40px; color: #666;">
-        <p>🚜 Data-Driven Farming Simulator - Game Data Reference v0.1</p>
-        <p><em>Updated: September 4, 2025</em></p>
+        <p>🌽 Field Station - Game Data Reference v1.0</p>
+        <p><em>Updated: September 4, 2024 - Major Feature Update</em></p>
+        <p><small>Includes: Save/Load System, Dynamic Markets, Extreme Weather, UI Improvements, Debug Mode</small></p>
     </div>
 </body>
 </html>

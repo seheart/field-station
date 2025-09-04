@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Field Station
+Comment=Data-driven agricultural field research simulation
+Exec=/home/seth/development/field_station/field_station_launcher.sh
+Icon=/home/seth/development/field_station/field_station_icon.png
+Terminal=false
+StartupNotify=true
+Categories=Game;Simulation;
+Keywords=farming;agriculture;simulation;research;crops;science;
+StartupWMClass=field-station
+MimeType=

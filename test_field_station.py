@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Test suite for the farming game
-Run with: python3 test_farming_game.py
+Test suite for Field Station
+Run with: python3 test_field_station.py
 """
 import unittest
 import pygame
@@ -50,7 +50,7 @@ pygame.display.set_mode = Mock(return_value=mock_screen)
 pygame.display.get_surface = Mock(return_value=mock_screen)
 
 # Now import the game components
-from farming_game import FarmingGame, Season, Weather, CROP_TYPES, Tile
+from field_station import FieldStation, Season, Weather, CROP_TYPES, Tile
 
 class TestGameComponents(unittest.TestCase):
     """Test basic game components"""
@@ -97,7 +97,7 @@ class TestGameLogic(unittest.TestCase):
     
     def setUp(self):
         """Set up test game instance"""
-        with patch('farming_game.pygame') as mock_pygame:
+        with patch('field_station.pygame') as mock_pygame:
             # Ensure mock screen has proper get_size method
             test_screen = Mock()
             test_screen.get_size.return_value = (1200, 800)
@@ -108,7 +108,7 @@ class TestGameLogic(unittest.TestCase):
             mock_pygame.display.get_surface.return_value = test_screen
             mock_pygame.font.Font.return_value.render.return_value = Mock()
             mock_pygame.time.get_ticks.return_value = 1000
-            self.game = FarmingGame()
+            self.game = FieldStation()
             
     def test_game_initialization(self):
         """Test game initializes with correct default values"""
@@ -205,7 +205,7 @@ class TestGameValidation(unittest.TestCase):
     
     def setUp(self):
         """Set up test game instance"""
-        with patch('farming_game.pygame') as mock_pygame:
+        with patch('field_station.pygame') as mock_pygame:
             # Ensure mock screen has proper get_size method
             test_screen = Mock()
             test_screen.get_size.return_value = (1200, 800)
@@ -216,7 +216,7 @@ class TestGameValidation(unittest.TestCase):
             mock_pygame.display.get_surface.return_value = test_screen
             mock_pygame.font.Font.return_value.render.return_value = Mock()
             mock_pygame.time.get_ticks.return_value = 1000
-            self.game = FarmingGame()
+            self.game = FieldStation()
             
     def test_insufficient_money_planting(self):
         """Test that planting fails with insufficient money"""
@@ -271,9 +271,9 @@ class TestGameValidation(unittest.TestCase):
 def run_syntax_check():
     """Run syntax check on the main game file"""
     try:
-        with open('farming_game.py', 'r') as f:
+        with open('field_station.py', 'r') as f:
             code = f.read()
-        compile(code, 'farming_game.py', 'exec')
+        compile(code, 'field_station.py', 'exec')
         print("✅ Syntax check passed")
         return True
     except SyntaxError as e:
@@ -289,7 +289,7 @@ def run_import_test():
     try:
         # Mock pygame to avoid requiring display
         with patch('pygame.init'), patch('pygame.display'), patch('pygame.font'), patch('pygame.time'):
-            import farming_game
+            import field_station
         print("✅ Import test passed")
         return True
     except Exception as e:
@@ -297,7 +297,7 @@ def run_import_test():
         return False
 
 if __name__ == '__main__':
-    print("🚜 Farming Game Test Suite")
+    print("🚜 Field Station Test Suite")
     print("=" * 40)
     
     # Run basic checks first
@@ -316,4 +316,4 @@ if __name__ == '__main__':
     print("- Syntax check: ✅")
     print("- Import check: ✅") 
     print("- Unit tests: See results above")
-    print("\n💡 To run tests: python3 test_farming_game.py")
+    print("\n💡 To run tests: python3 test_field_station.py")

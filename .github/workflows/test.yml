@@ -1,4 +1,4 @@
-name: Farming Game CI/CD
+name: Field Station CI/CD
 
 on:
   push:
@@ -49,17 +49,17 @@ jobs:
         
     - name: Run syntax check
       run: |
-        python -m py_compile farming_game.py
+        python -m py_compile field_station.py
         
     - name: Run tests with pytest
       run: |
         # Use xvfb for headless pygame testing
-        xvfb-run -a python test_farming_game.py
+        xvfb-run -a python test_field_station.py
         
     - name: Test game launch (headless)
       run: |
         # Test that the game can start without crashing
-        timeout 5 xvfb-run -a python farming_game.py || true
+        timeout 5 xvfb-run -a python field_station.py || true
 
   security-check:
     runs-on: ubuntu-latest

@@ -1,6 +1,6 @@
-# 🚜 Farm Game v0.1
+# 🌽 Field Station v1.0
 
-A data-driven farming simulation game built with Python and Pygame, featuring scientifically accurate crop varieties and location-based farming mechanics.
+A data-driven field research simulation built with Python and Pygame, featuring scientifically accurate crop varieties and location-based research mechanics.
 
 ## ✨ Features
 
@@ -15,11 +15,11 @@ A data-driven farming simulation game built with Python and Pygame, featuring sc
   - Pumpkin - *Cucurbita pepo* 'Howden'
   - Tomato - *Solanum lycopersicum* 'Better Boy'
 
-### 🗺️ Location-Based Farming
-- **Champaign, Illinois, USA** - Default farming location
+### 🗺️ Location-Based Field Research
+- **Champaign, Illinois, USA** - Default field research location
 - Accurate soil properties based on Central Illinois prairie conditions
 - Climate-specific weather patterns and seasonal timing
-- Expandable system for adding more farming regions
+- Expandable system for adding more field research regions
 
 ### 🎮 Game Mechanics
 - **3x3 isometric tile grid** with zoom (0.3x to 10x)
@@ -45,20 +45,24 @@ pip install pygame
 
 ### Installation
 ```bash
-git clone https://github.com/seheart/farm-game.git
-cd farm-game
-python3 farming_game.py
+git clone https://github.com/seheart/field_station.git
+cd field_station
+python3 field_station.py
 ```
 
 ### Controls
-- **ESC**: Main menu / Pause
-- **Arrow Keys / WASD**: Navigate menus
-- **Mouse**: Click tiles to select, interact with UI
-- **P**: Pause/unpause game
+- **ESC**: Main menu / Return to menu
+- **Arrow Keys / WASD**: Move camera / Navigate menus
+- **Mouse**: Click tiles to open popup, interact with UI
+- **Mouse Wheel**: Zoom in/out (0.3x to 10x)
+- **Space**: Pause/unpause game
+- **P**: Plant crop on selected tile
+- **H**: Harvest crop from selected tile
 - **A**: Toggle auto-harvest
-- **+/-**: Zoom in/out
-- **Space**: Speed up time
-- **Tab**: Cycle through tile information
+- **Ctrl+S**: Save game
+- **Ctrl+L**: Load game
+- **+/-**: Speed up/slow down time
+- **F1**: Toggle debug mode (shows click detection info)
 
 ## 🧪 Testing
 
@@ -69,18 +73,18 @@ Run the comprehensive test suite:
 
 Or run individual components:
 ```bash
-python3 test_farming_game.py  # Unit tests
-python3 -m py_compile farming_game.py  # Syntax check
+python3 test_field_station.py  # Unit tests
+python3 -m py_compile field_station.py  # Syntax check
 ```
 
 ## 📊 Game Data
 
-View detailed crop information, growth mechanics, and farming tips in [`game_data.html`](game_data.html).
+View detailed crop information, growth mechanics, and field research tips in [`game_data.html`](game_data.html).
 
 ## 🏗️ Architecture
 
-- **farming_game.py**: Main game engine with Pygame
-- **test_farming_game.py**: Comprehensive test suite
+- **field_station.py**: Main game engine with Pygame
+- **test_field_station.py**: Comprehensive test suite
 - **game_data.html**: Interactive crop and mechanics reference
 - **run_tests.sh**: Automated testing script
 - **.github/workflows/**: CI/CD pipeline for multiple Python versions
@@ -90,8 +94,8 @@ View detailed crop information, growth mechanics, and farming tips in [`game_dat
 ### Project Structure
 ```
 farm-game/
-├── farming_game.py          # Main game file
-├── test_farming_game.py     # Unit tests  
+├── field_station.py                # Main game file
+├── test_field_station.py           # Unit tests  
 ├── game_data.html           # Documentation
 ├── run_tests.sh             # Test runner
 ├── README.md                # This file
@@ -112,13 +116,19 @@ farm-game/
 
 ## 📈 Roadmap
 
-- [ ] Additional farming locations (Iowa, Nebraska, etc.)
+### ✅ **Completed in v1.0**
+- [x] **Save/load game functionality** - JSON-based persistence system
+- [x] **Market price fluctuations** - Dynamic seasonal pricing with trends
+- [x] **Advanced weather patterns** - Extreme weather events (drought, flood, storm, hail)
+- [x] **Enhanced UI** - Toast messages, progress bars, tooltips, debug mode
+- [x] **Improved controls** - Banished-style tile interaction with drag threshold
+
+### 🔮 **Future Development**
+- [ ] Additional field research locations (Iowa, Nebraska, etc.)
 - [ ] More crop varieties and seasonal plants
-- [ ] Advanced weather patterns and climate events
 - [ ] Equipment and technology upgrades
-- [ ] Market price fluctuations
-- [ ] Multiplayer farming cooperation
-- [ ] Save/load game functionality
+- [ ] Multiplayer field research cooperation
+- [ ] Achievement and tutorial systems
 
 ## 📝 License
 
@@ -128,9 +138,9 @@ This project is open source and available under the MIT License.
 
 - Built with [Pygame](https://www.pygame.org/)
 - Agricultural data sourced from University of Illinois Extension
-- Crop varieties selected for Central Illinois farming conditions
-- Isometric tile rendering inspired by classic farming games
+- Crop varieties selected for Central Illinois field research conditions
+- Isometric tile rendering inspired by classic field research games
 
 ---
 
-**🚜 Happy Farming!** - *Created with scientific accuracy and farming passion*
+**🔬 Happy Researching!** - *Created with scientific accuracy and research passion*

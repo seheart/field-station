@@ -4,10 +4,14 @@ import sys
 import math
 import random
 import os
+import json
 from datetime import datetime, timedelta
 from enum import Enum
 from dataclasses import dataclass
 from typing import Optional, Tuple, List
+
+# Set window class BEFORE initializing Pygame
+os.environ['SDL_VIDEO_X11_WMCLASS'] = 'field-station'
 
 # Initialize Pygame
 pygame.init()
@@ -19,6 +23,20 @@ GRID_WIDTH = 3
 GRID_HEIGHT = 3
 TILE_WIDTH = 64
 TILE_HEIGHT = 32
+
+# Game Constants
+SEED_COST = 10
+HARVEST_SOIL_DAMAGE = 0.05
+DAY_LENGTH_MS = 30000
+MESSAGE_DURATION = 3000
+
+# Font Sizes
+FONT_SIZES = {
+    'title': 72,
+    'heading': 48,
+    'body': 24,
+    'small': 16
+}
 
 # Colors
 BLACK = (0, 0, 0)
@@ -68,6 +86,10 @@ class Weather(Enum):
     CLOUDY = 2
     RAINY = 3
     SNOWY = 4
+    DROUGHT = 5
+    FLOOD = 6
+    STORM = 7
+    HAIL = 8
 
 @dataclass
 class Tile:
@@ -80,6 +102,86 @@ class Tile:
     growth_progress: float = 0.0
     days_planted: int = 0
     harvested_times: int = 0
+
+class Market:
+    """Handles dynamic pricing for crops based on season and supply/demand"""
+    
+    def __init__(self):
+        # Seasonal modifiers for crop prices
+        self.seasonal_modifiers = {
+            Season.SPRING: {
+                "wheat_soft_red_winter": 1.2,  # Higher demand in spring
+                "corn_sweet": 0.9,
+                "potato_russet_burbank": 1.1,
+                "carrot_imperator": 1.0,
+                "soybean": 1.0,
+                "field_corn": 0.8,
+                "pumpkin_howden": 0.7,  # Off season
+                "tomato_better_boy": 0.9
+            },
+            Season.SUMMER: {
+                "wheat_soft_red_winter": 0.8,
+                "corn_sweet": 1.3,  # Peak season
+                "potato_russet_burbank": 0.9,
+                "carrot_imperator": 1.1,
+                "soybean": 1.0,
+                "field_corn": 1.0,
+                "pumpkin_howden": 0.8,
+                "tomato_better_boy": 1.4  # Peak season
+            },
+            Season.FALL: {
+                "wheat_soft_red_winter": 1.0,
+                "corn_sweet": 0.7,
+                "potato_russet_burbank": 1.2,  # Harvest season
+                "carrot_imperator": 1.3,  # Harvest season
+                "soybean": 1.2,  # Harvest season
+                "field_corn": 1.3,  # Harvest season
+                "pumpkin_howden": 1.5,  # Peak season
+                "tomato_better_boy": 0.8
+            },
+            Season.WINTER: {
+                "wheat_soft_red_winter": 1.1,
+                "corn_sweet": 1.0,
+                "potato_russet_burbank": 1.0,
+                "carrot_imperator": 0.9,
+                "soybean": 1.1,
+                "field_corn": 1.0,
+                "pumpkin_howden": 0.6,  # Off season
+                "tomato_better_boy": 1.1  # Greenhouse premium
+            }
+        }
+        
+        # Random daily fluctuations
+        self.daily_variance = 0.15  # ±15% daily price variation
+        
+    def get_crop_price(self, crop_name: str, season: Season, day: int) -> int:
+        """Get current market price for a crop"""
+        if crop_name not in CROP_TYPES:
+            return 0
+            
+        base_price = CROP_TYPES[crop_name].value
+        seasonal_modifier = self.seasonal_modifiers[season].get(crop_name, 1.0)
+        
+        # Add some daily randomness based on day (deterministic but varying)
+        random.seed(day + hash(crop_name))  # Deterministic randomness
+        daily_modifier = 1.0 + random.uniform(-self.daily_variance, self.daily_variance)
+        
+        final_price = int(base_price * seasonal_modifier * daily_modifier)
+        return max(1, final_price)  # Minimum price of 1
+    
+    def get_price_trend(self, crop_name: str, season: Season) -> str:
+        """Get price trend indicator for UI"""
+        modifier = self.seasonal_modifiers[season].get(crop_name, 1.0)
+        if modifier >= 1.2:
+            return "↗ HIGH"
+        elif modifier >= 1.1:
+            return "↗ Good"
+        elif modifier <= 0.8:
+            return "↘ Low"
+        elif modifier <= 0.9:
+            return "↘ Poor"
+        else:
+            return "→ Fair"
     
 class GameState(Enum):
     MENU = 1
@@ -91,7 +193,7 @@ class GameState(Enum):
     HELP = 7
     FARM_SETUP = 8
 
-class FarmingGame:
+class FieldStation:
     def __init__(self):
         # Detect available displays and set initial display
         self.current_display = self.get_current_display()
@@ -101,7 +203,7 @@ class FarmingGame:
         self.fullscreen = True
         self.create_window()
             
-        pygame.display.set_caption("Data-Driven Farming Simulator")
+        pygame.display.set_caption("Field Station")
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 20)
         self.small_font = pygame.font.Font(None, 16)
@@ -115,7 +217,9 @@ class FarmingGame:
         
         # Mouse and camera controls
         self.mouse_dragging = False
+        self.mouse_down = False  # Track if mouse is down but not yet dragging
         self.drag_start = (0, 0)
+        self.drag_threshold = 5  # Pixels to move before starting drag
         self.keys_pressed = set()  # Track continuously held keys
         self.zoom_level = 1.0  # Zoom level for camera
         self.min_zoom = 0.3
@@ -131,6 +235,14 @@ class FarmingGame:
         # Tile selection
         self.selected_tile_pos = None
         self.auto_harvest = False
+        
+        # Message system for user feedback
+        self.messages = []
+        
+        # Tooltip system
+        self.tooltip_text = ""
+        self.tooltip_pos = (0, 0)
+        self.tooltip_timer = 0
         
         # Tile popup interface (Banished-style)
         self.tile_popup_active = False
@@ -225,13 +337,27 @@ class FarmingGame:
         self.start_date = datetime(2025, 3, 1)
         self.current_date = self.start_date
         
+        # Market system
+        self.market = Market()
+        
         # Weather affects
         self.weather_moisture_change = {
             Weather.SUNNY: -0.02,
             Weather.CLOUDY: -0.01,
             Weather.RAINY: 0.05,
-            Weather.SNOWY: 0.02
+            Weather.SNOWY: 0.02,
+            Weather.DROUGHT: -0.08,  # Severe moisture loss
+            Weather.FLOOD: 0.15,     # Excessive moisture
+            Weather.STORM: 0.08,     # Heavy rain
+            Weather.HAIL: 0.03       # Some moisture but crop damage
         }
+        
+        # Extreme weather tracking
+        self.extreme_weather_chance = 0.05  # 5% chance per day
+        self.last_extreme_weather = 0
+        
+        # Debug mode (toggle with F1)
+        self.debug_mode = False
     
     def screen_to_grid(self, x, y) -> Optional[Tuple[int, int]]:
         """Convert screen coordinates to grid coordinates with improved accuracy"""
@@ -265,8 +391,11 @@ class FarmingGame:
             dx = abs(x - tile_center_x)
             dy = abs(y - tile_center_y)
             
-            # Allow clicks within the diamond shape with some padding
-            if dx / tile_w + dy / tile_h <= 0.8:  # More generous than 0.5 for easier clicking
+            # Zoom-aware tolerance - more generous at high zoom for easier clicking
+            tolerance = min(1.0, max(0.6, 0.5 + self.zoom_level * 0.1))
+            
+            # Allow clicks within the diamond shape with zoom-adjusted padding
+            if dx / tile_w + dy / tile_h <= tolerance:
                 return (grid_x, grid_y)
         return None
     
@@ -279,6 +408,237 @@ class FarmingGame:
         x = (grid_x - grid_y) * tile_w // 2 + self.camera_x
         y = (grid_x + grid_y) * tile_h // 2 + self.camera_y
         return (x, y)
+    
+    def show_message(self, text: str, color: Tuple[int, int, int] = RED, duration: int = MESSAGE_DURATION):
+        """Show a message to the user"""
+        self.messages.append({
+            'text': text,
+            'color': color,
+            'start_time': pygame.time.get_ticks(),
+            'duration': duration
+        })
+    
+    def update_messages(self):
+        """Update and remove expired messages"""
+        current_time = pygame.time.get_ticks()
+        self.messages = [msg for msg in self.messages 
+                        if current_time - msg['start_time'] < msg['duration']]
+    
+    def draw_messages(self):
+        """Draw active messages"""
+        for i, msg in enumerate(self.messages):
+            current_time = pygame.time.get_ticks()
+            elapsed = current_time - msg['start_time']
+            
+            # Fade out effect
+            alpha = max(0, 255 - int(255 * elapsed / msg['duration']))
+            
+            # Create surface with alpha
+            text_surface = self.ui_font.render(msg['text'], True, msg['color'])
+            text_surface.set_alpha(alpha)
+            
+            # Position messages at top-center
+            x = SCREEN_WIDTH // 2 - text_surface.get_width() // 2
+            y = 100 + i * 30
+            
+            # Background for readability
+            bg_rect = pygame.Rect(x - 10, y - 5, text_surface.get_width() + 20, text_surface.get_height() + 10)
+            bg_surface = pygame.Surface((bg_rect.width, bg_rect.height))
+            bg_surface.set_alpha(alpha // 2)
+            bg_surface.fill(BLACK)
+            self.screen.blit(bg_surface, bg_rect)
+            
+            self.screen.blit(text_surface, (x, y))
+    
+    def show_tooltip(self, text: str, pos: Tuple[int, int]):
+        """Show a tooltip at the specified position"""
+        self.tooltip_text = text
+        self.tooltip_pos = pos
+        self.tooltip_timer = pygame.time.get_ticks()
+    
+    def draw_tooltip(self):
+        """Draw the tooltip if active"""
+        if not self.tooltip_text:
+            return
+            
+        # Show tooltip for 2 seconds after being set
+        if pygame.time.get_ticks() - self.tooltip_timer > 2000:
+            self.tooltip_text = ""
+            return
+        
+        # Create tooltip surface
+        tooltip_surface = self.font.render(self.tooltip_text, True, WHITE)
+        tooltip_width = tooltip_surface.get_width() + 20
+        tooltip_height = tooltip_surface.get_height() + 10
+        
+        # Position tooltip near mouse, but keep on screen
+        x, y = self.tooltip_pos
+        x = max(10, min(x + 15, SCREEN_WIDTH - tooltip_width - 10))
+        y = max(10, min(y - tooltip_height - 10, SCREEN_HEIGHT - tooltip_height - 10))
+        
+        # Draw background
+        bg_rect = pygame.Rect(x, y, tooltip_width, tooltip_height)
+        pygame.draw.rect(self.screen, (50, 50, 50), bg_rect)
+        pygame.draw.rect(self.screen, WHITE, bg_rect, 1)
+        
+        # Draw text
+        self.screen.blit(tooltip_surface, (x + 10, y + 5))
+    
+    def draw_debug_info(self):
+        """Draw debug information overlay"""
+        debug_y = 10
+        
+        # Camera info
+        debug_text = f"Camera: ({self.camera_x:.0f}, {self.camera_y:.0f}) Zoom: {self.zoom_level:.2f}"
+        debug_surface = self.font.render(debug_text, True, WHITE)
+        
+        # Background for readability
+        bg_rect = pygame.Rect(10, debug_y, debug_surface.get_width() + 10, debug_surface.get_height() + 5)
+        pygame.draw.rect(self.screen, (0, 0, 0), bg_rect)
+        pygame.draw.rect(self.screen, WHITE, bg_rect, 1)
+        
+        self.screen.blit(debug_surface, (15, debug_y + 2))
+        debug_y += 30
+        
+        # Mouse info
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        grid_pos = self.screen_to_grid(mouse_x, mouse_y)
+        mouse_text = f"Mouse: ({mouse_x}, {mouse_y}) Grid: {grid_pos}"
+        mouse_surface = self.font.render(mouse_text, True, WHITE)
+        
+        bg_rect = pygame.Rect(10, debug_y, mouse_surface.get_width() + 10, mouse_surface.get_height() + 5)
+        pygame.draw.rect(self.screen, (0, 0, 0), bg_rect)
+        pygame.draw.rect(self.screen, WHITE, bg_rect, 1)
+        
+        self.screen.blit(mouse_surface, (15, debug_y + 2))
+        debug_y += 30
+        
+        # Selected tile info
+        if self.selected_tile_pos:
+            selected_text = f"Selected: {self.selected_tile_pos}"
+            selected_surface = self.font.render(selected_text, True, YELLOW)
+            
+            bg_rect = pygame.Rect(10, debug_y, selected_surface.get_width() + 10, selected_surface.get_height() + 5)
+            pygame.draw.rect(self.screen, (0, 0, 0), bg_rect)
+            pygame.draw.rect(self.screen, WHITE, bg_rect, 1)
+            
+            self.screen.blit(selected_surface, (15, debug_y + 2))
+        
+        # Draw tile grid outlines
+        for y in range(GRID_HEIGHT):
+            for x in range(GRID_WIDTH):
+                tile_screen_x, tile_screen_y = self.grid_to_screen(x, y)
+                tile_w = int(TILE_WIDTH * self.zoom_level)
+                tile_h = int(TILE_HEIGHT * self.zoom_level)
+                
+                # Draw tile center
+                pygame.draw.circle(self.screen, RED, (tile_screen_x, tile_screen_y), 3)
+                
+                # Draw tile bounds (diamond)
+                points = [
+                    (tile_screen_x, tile_screen_y + tile_h // 2),
+                    (tile_screen_x + tile_w // 2, tile_screen_y),
+                    (tile_screen_x + tile_w, tile_screen_y + tile_h // 2),
+                    (tile_screen_x + tile_w // 2, tile_screen_y + tile_h)
+                ]
+                pygame.draw.polygon(self.screen, RED, points, 1)
+    
+    def save_game(self, filename: str = "savegame.json"):
+        """Save the current game state to a JSON file"""
+        try:
+            save_data = {
+                'version': '0.1',
+                'farm_name': self.farm_name,
+                'farm_location': self.farm_location,
+                'money': self.money,
+                'day': self.day,
+                'season': self.season.name,
+                'weather': self.weather.name,
+                'current_date': self.current_date.isoformat(),
+                'auto_harvest': self.auto_harvest,
+                'grid': []
+            }
+            
+            # Save grid state
+            for row in self.grid:
+                row_data = []
+                for tile in row:
+                    tile_data = {
+                        'x': tile.x,
+                        'y': tile.y,
+                        'soil_quality': tile.soil_quality,
+                        'moisture': tile.moisture,
+                        'nitrogen': tile.nitrogen,
+                        'crop': tile.crop,
+                        'growth_progress': tile.growth_progress,
+                        'days_planted': tile.days_planted,
+                        'harvested_times': tile.harvested_times
+                    }
+                    row_data.append(tile_data)
+                save_data['grid'].append(row_data)
+            
+            # Create saves directory if it doesn't exist
+            os.makedirs('saves', exist_ok=True)
+            
+            with open(f'saves/{filename}', 'w') as f:
+                json.dump(save_data, f, indent=2)
+            
+            self.show_message(f"Game saved as {filename}", GREEN)
+            return True
+            
+        except Exception as e:
+            self.show_message(f"Save failed: {str(e)}", RED)
+            return False
+    
+    def load_game(self, filename: str = "savegame.json"):
+        """Load a game state from a JSON file"""
+        try:
+            with open(f'saves/{filename}', 'r') as f:
+                save_data = json.load(f)
+            
+            # Restore game state
+            self.farm_name = save_data.get('farm_name', '')
+            self.farm_location = save_data.get('farm_location', 'Champaign, Illinois, USA')
+            self.money = save_data.get('money', 500)
+            self.day = save_data.get('day', 1)
+            self.season = Season[save_data.get('season', 'SPRING')]
+            self.weather = Weather[save_data.get('weather', 'SUNNY')]
+            self.current_date = datetime.fromisoformat(save_data.get('current_date', '2025-03-01T00:00:00'))
+            self.auto_harvest = save_data.get('auto_harvest', False)
+            
+            # Restore grid
+            grid_data = save_data.get('grid', [])
+            for y, row_data in enumerate(grid_data):
+                for x, tile_data in enumerate(row_data):
+                    if y < GRID_HEIGHT and x < GRID_WIDTH:
+                        tile = self.grid[y][x]
+                        tile.soil_quality = tile_data.get('soil_quality', 0.5)
+                        tile.moisture = tile_data.get('moisture', 0.5)
+                        tile.nitrogen = tile_data.get('nitrogen', 0.5)
+                        tile.crop = tile_data.get('crop')
+                        tile.growth_progress = tile_data.get('growth_progress', 0.0)
+                        tile.days_planted = tile_data.get('days_planted', 0)
+                        tile.harvested_times = tile_data.get('harvested_times', 0)
+            
+            self.show_message(f"Game loaded from {filename}", GREEN)
+            self.game_in_progress = True
+            return True
+            
+        except FileNotFoundError:
+            self.show_message("Save file not found", RED)
+            return False
+        except Exception as e:
+            self.show_message(f"Load failed: {str(e)}", RED)
+            return False
+    
+    def get_short_crop_name(self, crop_name: str) -> str:
+        """Get shortened crop name for UI display"""
+        if not crop_name:
+            return ""
+        full_name = CROP_TYPES[crop_name].name
+        if ' - ' in full_name:
+            return full_name.split(' - ')[0]
+        return full_name
     
     def draw_tile(self, tile: Tile):
         """Draw a single isometric tile"""
@@ -324,6 +684,34 @@ class FarmingGame:
                                  self.selected_tile_pos == (tile.x, tile.y)) else DARK_GRAY
         border_width = 3 if border_color == YELLOW else 2
         pygame.draw.polygon(self.screen, border_color, points, border_width)
+        
+        # Draw progress bar for crops at high zoom levels
+        if tile.crop and self.zoom_level > 2.0:
+            self.draw_growth_bar(tile, x, y, tile_w, tile_h)
+    
+    def draw_growth_bar(self, tile: Tile, tile_x: int, tile_y: int, tile_w: int, tile_h: int):
+        """Draw a progress bar above the tile showing crop growth"""
+        if not tile.crop or tile.growth_progress >= 1.0:
+            return
+            
+        # Position bar above the tile
+        bar_width = max(20, tile_w // 2)
+        bar_height = max(4, int(6 * self.zoom_level))
+        bar_x = tile_x + tile_w // 2 - bar_width // 2
+        bar_y = tile_y - bar_height - 5
+        
+        # Background bar
+        pygame.draw.rect(self.screen, (40, 40, 40), 
+                        (bar_x, bar_y, bar_width, bar_height))
+        pygame.draw.rect(self.screen, WHITE, 
+                        (bar_x, bar_y, bar_width, bar_height), 1)
+        
+        # Progress bar
+        progress_width = int(bar_width * tile.growth_progress)
+        if progress_width > 0:
+            progress_color = GREEN if tile.growth_progress >= 0.8 else YELLOW if tile.growth_progress >= 0.5 else RED
+            pygame.draw.rect(self.screen, progress_color, 
+                           (bar_x, bar_y, progress_width, bar_height))
         
     
     def update_day(self):
@@ -383,17 +771,55 @@ class FarmingGame:
             else:  # November - cooler, more clouds, preparing for winter
                 weather_options = [Weather.CLOUDY, Weather.SUNNY, Weather.RAINY, Weather.CLOUDY]
         
-        # Add some date-based variation (every 3-5 days weather might change)
-        if self.day % random.randint(3, 5) == 0:
+        # Check for extreme weather events first
+        if (self.day - self.last_extreme_weather > 7 and 
+            random.random() < self.extreme_weather_chance):
+            extreme_options = []
+            
+            if self.season in [Season.SUMMER, Season.FALL]:
+                extreme_options.extend([Weather.DROUGHT, Weather.STORM])
+            if self.season in [Season.SPRING, Season.SUMMER]:
+                extreme_options.extend([Weather.FLOOD, Weather.HAIL])
+            
+            if extreme_options:
+                self.weather = random.choice(extreme_options)
+                self.last_extreme_weather = self.day
+                
+                # Show extreme weather alert
+                weather_name = self.weather.name.title()
+                self.show_message(f"⚠️ EXTREME WEATHER: {weather_name}!", RED, 5000)
+        
+        # Normal weather changes (every 3-5 days)
+        elif self.day % random.randint(3, 5) == 0:
             self.weather = random.choice(weather_options)
         # Otherwise keep current weather for consistency
         
-        # Update all tiles
+                # Update all tiles
         for row in self.grid:
             for tile in row:
                 # Update moisture based on weather
                 tile.moisture += self.weather_moisture_change[self.weather]
                 tile.moisture = max(0, min(1, tile.moisture))
+                
+                # Apply extreme weather effects
+                if tile.crop:
+                    if self.weather == Weather.HAIL:
+                        # Hail can damage crops
+                        if random.random() < 0.3:  # 30% chance of damage
+                            damage = random.uniform(0.1, 0.3)
+                            tile.growth_progress = max(0, tile.growth_progress - damage)
+                    
+                    elif self.weather == Weather.FLOOD:
+                        # Flooding can kill crops
+                        if tile.moisture > 0.9 and random.random() < 0.15:  # 15% chance if waterlogged
+                            tile.crop = None
+                            tile.growth_progress = 0.0
+                            tile.days_planted = 0
+                    
+                    elif self.weather == Weather.DROUGHT:
+                        # Drought severely impacts growth
+                        if tile.moisture < 0.2:
+                            tile.growth_progress = max(0, tile.growth_progress - 0.05)
                 
                 # Update crops
                 if tile.crop:
@@ -435,15 +861,18 @@ class FarmingGame:
         
         # Check if we can plant
         if tile.crop:
+            self.show_message("Tile already has a crop!", YELLOW)
             return  # Already has a crop
         
-        if self.money < 10:  # Seed cost
+        if self.money < SEED_COST:
+            self.show_message(f"Need ${SEED_COST} for seeds!", RED)
             return
         
         # Auto-select best crop for current season
         available_crops = [name for name, crop_type in CROP_TYPES.items() 
                           if self.season in crop_type.seasons]
         if not available_crops:
+            self.show_message(f"No crops can be planted in {self.season.name.title()}!", RED)
             return  # No crops can be planted this season
             
         # Choose wheat if available, otherwise first available crop
@@ -454,27 +883,40 @@ class FarmingGame:
         tile.crop = chosen_crop
         tile.growth_progress = 0.0
         tile.days_planted = 0
-        self.money -= 10
+        self.money -= SEED_COST
+        
+        crop_name = self.get_short_crop_name(chosen_crop)
+        self.show_message(f"Planted {crop_name} for ${SEED_COST}", GREEN)
     
     def harvest_crop(self, grid_x, grid_y):
         """Harvest a crop at the specified tile"""
         tile = self.grid[grid_y][grid_x]
         
-        if not tile.crop or tile.growth_progress < 1.0:
-            return  # No crop or not ready
+        if not tile.crop:
+            self.show_message("No crop to harvest!", YELLOW)
+            return
+            
+        if tile.growth_progress < 1.0:
+            progress_pct = int(tile.growth_progress * 100)
+            self.show_message(f"Crop only {progress_pct}% grown!", YELLOW)
+            return
         
         crop_type = CROP_TYPES[tile.crop]
+        crop_name = self.get_short_crop_name(tile.crop)
         
-        # Calculate yield based on soil quality
+        # Calculate yield based on soil quality and market price
         yield_multiplier = tile.soil_quality
-        value = int(crop_type.value * yield_multiplier)
+        market_price = self.market.get_crop_price(tile.crop, self.season, self.day)
+        value = int(market_price * yield_multiplier)
         
         self.money += value
         tile.harvested_times += 1
         
         # Harvesting affects soil quality
-        tile.soil_quality -= 0.05
+        tile.soil_quality -= HARVEST_SOIL_DAMAGE
         tile.soil_quality = max(0.1, tile.soil_quality)
+        
+        self.show_message(f"Harvested {crop_name} for ${value}!", GREEN)
         
         # Clear the crop
         tile.crop = None
@@ -542,22 +984,29 @@ class FarmingGame:
         
         # Check if tile is empty
         if tile.crop:
+            self.show_message("Tile already has a crop!", YELLOW)
             return False
         
         # Check cost
-        if self.money < 10:
+        if self.money < SEED_COST:
+            self.show_message(f"Need ${SEED_COST} for seeds!", RED)
             return False
         
         # Check if crop is valid for current season
         crop_type = CROP_TYPES[crop_name]
         if self.season not in crop_type.seasons:
+            season_name = self.season.name.title()
+            self.show_message(f"Can't plant in {season_name}!", RED)
             return False
         
         # Plant the crop
-        self.money -= 10
+        self.money -= SEED_COST
         tile.crop = crop_name
         tile.growth_progress = 0.0
         tile.days_planted = 0
+        
+        crop_display_name = self.get_short_crop_name(crop_name)
+        self.show_message(f"Planted {crop_display_name} for ${SEED_COST}", GREEN)
         return True
     
     def auto_harvest_check(self):
@@ -610,6 +1059,42 @@ class FarmingGame:
                 flake_y = center_y + 6
                 pygame.draw.line(self.screen, WHITE, (flake_x - 2, flake_y), (flake_x + 2, flake_y), 1)
                 pygame.draw.line(self.screen, WHITE, (flake_x, flake_y - 2), (flake_x, flake_y + 2), 1)
+        
+        elif weather == Weather.DROUGHT:
+            # Harsh sun with heat lines
+            pygame.draw.circle(self.screen, (255, 200, 0), (center_x, center_y), size // 3)
+            # Heat waves (wavy lines)
+            for i in range(2):
+                y_offset = center_y + 8 + i * 3
+                pygame.draw.line(self.screen, (255, 100, 0), 
+                               (center_x - 8, y_offset), (center_x + 8, y_offset), 1)
+        
+        elif weather == Weather.FLOOD:
+            # Heavy rain with water level
+            pygame.draw.circle(self.screen, GRAY, (center_x, center_y - 6), size // 4)
+            # Heavy rain
+            for i in range(5):
+                drop_x = center_x - 8 + i * 4
+                pygame.draw.line(self.screen, BLUE, (drop_x, center_y), (drop_x, center_y + 8), 2)
+            # Water level
+            pygame.draw.rect(self.screen, BLUE, (center_x - 10, center_y + 8, 20, 3))
+        
+        elif weather == Weather.STORM:
+            # Dark cloud with lightning
+            pygame.draw.circle(self.screen, (60, 60, 60), (center_x, center_y - 4), size // 3)
+            # Lightning bolt
+            points = [(center_x - 2, center_y + 2), (center_x + 1, center_y + 6), 
+                     (center_x - 1, center_y + 6), (center_x + 2, center_y + 10)]
+            pygame.draw.lines(self.screen, YELLOW, False, points, 2)
+        
+        elif weather == Weather.HAIL:
+            # Cloud with hail
+            pygame.draw.circle(self.screen, GRAY, (center_x, center_y - 4), size // 3)
+            # Hail stones (small circles)
+            for i in range(4):
+                hail_x = center_x - 6 + i * 4
+                hail_y = center_y + 6
+                pygame.draw.circle(self.screen, WHITE, (hail_x, hail_y), 1)
     
     def draw_options_icon(self, x, y, size=24):
         """Draw a simple gear/options icon"""
@@ -746,8 +1231,8 @@ class FarmingGame:
             
             # Crop info and action buttons
             if tile.crop:
-                crop_type = CROP_TYPES[tile.crop]
-                crop_text = self.font.render(f"Crop: {crop_type.name}", True, WHITE)
+                crop_name = self.get_short_crop_name(tile.crop)
+                crop_text = self.font.render(f"Crop: {crop_name}", True, WHITE)
                 self.screen.blit(crop_text, (panel_rect.x + 10, y_pos + 58))
                 
                 growth_color = GREEN if tile.growth_progress >= 1.0 else YELLOW
@@ -808,6 +1293,57 @@ class FarmingGame:
         auto_color = GREEN if self.auto_harvest else GRAY
         auto_text = self.font.render(f"Auto-Harvest: {'ON' if self.auto_harvest else 'OFF'}", True, auto_color)
         self.screen.blit(auto_text, (stats_rect.x + 10, y_pos + 72))
+        
+        # Market prices panel (bottom left)
+        self.draw_market_panel()
+    
+    def draw_market_panel(self):
+        """Draw market prices for current season"""
+        panel_width = 250
+        panel_height = 200
+        panel_rect = pygame.Rect(20, SCREEN_HEIGHT - panel_height - 170, panel_width, panel_height)
+        
+        # Draw semi-transparent background
+        s = pygame.Surface((panel_width, panel_height))
+        s.set_alpha(200)
+        s.fill((20, 20, 20))
+        self.screen.blit(s, panel_rect)
+        pygame.draw.rect(self.screen, WHITE, panel_rect, 1)
+        
+        # Title
+        title = self.ui_font.render("Market Prices", True, YELLOW)
+        self.screen.blit(title, (panel_rect.x + 10, panel_rect.y + 8))
+        
+        season_text = self.font.render(f"{self.season.name.title()} Season", True, WHITE)
+        self.screen.blit(season_text, (panel_rect.x + 10, panel_rect.y + 32))
+        
+        # Show prices for plantable crops
+        y_pos = panel_rect.y + 55
+        valid_crops = [name for name, crop_type in CROP_TYPES.items() 
+                      if self.season in crop_type.seasons]
+        
+        for i, crop_name in enumerate(valid_crops[:6]):  # Show max 6 crops
+            if y_pos + 20 > panel_rect.y + panel_height - 10:
+                break
+                
+            crop_display = self.get_short_crop_name(crop_name)
+            price = self.market.get_crop_price(crop_name, self.season, self.day)
+            trend = self.market.get_price_trend(crop_name, self.season)
+            
+            # Crop name
+            crop_text = self.small_font.render(f"{crop_display}:", True, WHITE)
+            self.screen.blit(crop_text, (panel_rect.x + 10, y_pos))
+            
+            # Price
+            price_text = self.small_font.render(f"${price}", True, GREEN)
+            self.screen.blit(price_text, (panel_rect.x + 120, y_pos))
+            
+            # Trend
+            trend_color = GREEN if "HIGH" in trend or "Good" in trend else RED if "Low" in trend or "Poor" in trend else YELLOW
+            trend_text = self.small_font.render(trend, True, trend_color)
+            self.screen.blit(trend_text, (panel_rect.x + 160, y_pos))
+            
+            y_pos += 18
     
     def draw_ui(self):
         """Draw the user interface"""
@@ -956,7 +1492,7 @@ class FarmingGame:
         self.screen.blit(title, title_rect)
         
         # Subtitle
-        subtitle = self.ui_font.render("Create your personalized farming experience", True, LIGHT_GREEN)
+        subtitle = self.ui_font.render("Create your personalized field research experience", True, LIGHT_GREEN)
         subtitle_rect = subtitle.get_rect(center=(SCREEN_WIDTH // 2, 180))
         self.screen.blit(subtitle, subtitle_rect)
         
@@ -1168,7 +1704,7 @@ class FarmingGame:
     def update_menu_options(self):
         """Update main menu options based on game state"""
         if self.game_in_progress:
-            self.menu_options = ["Continue Game", "New Game", "Load Game", "Tutorials", "Achievements", "Options", "Exit"]
+            self.menu_options = ["Continue Game", "Save Game", "New Game", "Load Game", "Tutorials", "Achievements", "Options", "Exit"]
         else:
             self.menu_options = ["New Game", "Load Game", "Tutorials", "Achievements", "Options", "Exit"]
     
@@ -1437,12 +1973,20 @@ class FarmingGame:
         if selected == "Continue Game":
             # Return to the game in progress
             self.game_state = GameState.GAME
+        elif selected == "Save Game":
+            if self.game_in_progress:
+                self.save_game()
+                # Stay in menu
+            else:
+                self.show_message("No game to save!", RED)
         elif selected == "New Game":
             self.game_state = GameState.FARM_SETUP
             self.farm_name = ""
             self.setup_name_input_active = True
         elif selected == "Load Game":
-            self.game_state = GameState.LOAD
+            if self.load_game():
+                self.game_state = GameState.GAME
+            # If load failed, stay in menu
         elif selected == "Tutorials":
             self.game_state = GameState.TUTORIALS
         elif selected == "Achievements":
@@ -1560,9 +2104,38 @@ class FarmingGame:
                 elif event.key == pygame.K_MINUS:
                     self.speed = max(1, self.speed - 1)
                 
-                # Farming controls
+                # Field Station controls
                 elif event.key == pygame.K_a:
                     self.auto_harvest = not self.auto_harvest
+                    status = "ON" if self.auto_harvest else "OFF"
+                    self.show_message(f"Auto-harvest {status}", GREEN if self.auto_harvest else YELLOW)
+                
+                # Keyboard shortcuts for actions
+                elif event.key == pygame.K_p:
+                    if self.selected_tile_pos:
+                        x, y = self.selected_tile_pos
+                        self.plant_crop(x, y)
+                    else:
+                        self.show_message("Select a tile first!", YELLOW)
+                
+                elif event.key == pygame.K_h:
+                    if self.selected_tile_pos:
+                        x, y = self.selected_tile_pos
+                        self.harvest_crop(x, y)
+                    else:
+                        self.show_message("Select a tile first!", YELLOW)
+                
+                # Save/Load shortcuts
+                elif event.key == pygame.K_s and pygame.key.get_pressed()[pygame.K_LCTRL]:
+                    self.save_game()
+                elif event.key == pygame.K_l and pygame.key.get_pressed()[pygame.K_LCTRL]:
+                    self.load_game()
+                
+                # Debug mode toggle
+                elif event.key == pygame.K_F1:
+                    self.debug_mode = not self.debug_mode
+                    status = "ON" if self.debug_mode else "OFF"
+                    self.show_message(f"Debug mode {status}", YELLOW)
             
             elif event.type == pygame.KEYUP:
                 # Remove keys from pressed set when released
@@ -1578,29 +2151,47 @@ class FarmingGame:
                     if not ui_clicked:
                         # Check if clicking on a tile to open popup
                         grid_pos = self.screen_to_grid(mouse_x, mouse_y)
-                        if grid_pos:
-                            # Open tile popup instead of just selecting
-                            self.open_tile_popup(grid_pos)
-                        else:
-                            # Clicking on empty area - close popup and start dragging
-                            self.close_tile_popup()
-                            self.mouse_dragging = True
-                            self.drag_start = pygame.mouse.get_pos()
                         
-                elif event.button == 2:  # Middle mouse - always drag
+                        if self.debug_mode:
+                            self.show_message(f"Click at ({mouse_x}, {mouse_y}) -> {grid_pos}", WHITE, 2000)
+                        
+                        if grid_pos:
+                            # Open tile popup immediately - like Banished
+                            self.open_tile_popup(grid_pos)
+                            self.selected_tile_pos = grid_pos  # Also select the tile
+                            
+                            if self.debug_mode:
+                                self.show_message(f"Opened popup for tile {grid_pos}", GREEN, 2000)
+                        else:
+                            # Clicking on empty area - close popup but don't start dragging yet
+                            self.close_tile_popup()
+                            self.selected_tile_pos = None
+                            
+                            if self.debug_mode:
+                                self.show_message("Clicked empty area", YELLOW, 2000)
+                        
+                        # Set up potential dragging (but don't start yet)
+                        self.mouse_down = True
+                        self.drag_start = pygame.mouse.get_pos()
+                        
+                elif event.button == 2:  # Middle mouse - start dragging immediately
                     self.mouse_dragging = True
                     self.drag_start = pygame.mouse.get_pos()
                     
                 # Right click removed - harvest available in popup interface
             
             elif event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1 or event.button == 2:
+                if event.button == 1:
+                    self.mouse_down = False
+                    self.mouse_dragging = False
+                elif event.button == 2:
                     self.mouse_dragging = False
             
             elif event.type == pygame.MOUSEMOTION:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                
                 if self.mouse_dragging:
                     # Pan camera based on mouse movement
-                    mouse_x, mouse_y = pygame.mouse.get_pos()
                     start_x, start_y = self.drag_start
                     
                     # Update camera position
@@ -1609,6 +2200,27 @@ class FarmingGame:
                     
                     # Update drag start for continuous movement
                     self.drag_start = (mouse_x, mouse_y)
+                    
+                elif self.mouse_down:
+                    # Check if we should start dragging based on distance moved
+                    start_x, start_y = self.drag_start
+                    distance = ((mouse_x - start_x) ** 2 + (mouse_y - start_y) ** 2) ** 0.5
+                    
+                    if distance > self.drag_threshold:
+                        # Start dragging - close any popups first
+                        self.close_tile_popup()
+                        self.selected_tile_pos = None
+                        self.mouse_dragging = True
+                        
+                else:
+                    # Check for tooltip triggers on hover (only when not dragging/clicking)
+                    grid_pos = self.screen_to_grid(mouse_x, mouse_y)
+                    if grid_pos and not self.tile_popup_active and not self.mouse_down:
+                        x, y = grid_pos
+                        tile = self.grid[y][x]
+                        if tile.crop:
+                            full_crop_name = CROP_TYPES[tile.crop].name
+                            self.show_tooltip(full_crop_name, (mouse_x, mouse_y))
             
             elif event.type == pygame.MOUSEWHEEL:
                 # Mouse wheel zoom
@@ -1789,7 +2401,8 @@ class FarmingGame:
         # Current crop status
         current_y = title_y + 30
         if tile.crop:
-            crop_text = f"Current: {tile.crop.title()}"
+            crop_name = self.get_short_crop_name(tile.crop)
+            crop_text = f"Current: {crop_name}"
             progress_text = f"Yield: {int(tile.growth_progress * 100)}%"
         else:
             crop_text = "Current: Empty"
@@ -1916,7 +2529,7 @@ class FarmingGame:
                         if item_rect.collidepoint(mouse_x, mouse_y):
                             pygame.draw.rect(self.screen, (80, 80, 80), item_rect)
                         
-                        crop_text = crop_name.title()
+                        crop_text = self.get_short_crop_name(crop_name)
                         text_render = self.small_font.render(crop_text, True, WHITE)
                         self.screen.blit(text_render, (dropdown_x + 5, item_y + i * 25 + 5))
                 else:
@@ -1963,12 +2576,15 @@ class FarmingGame:
                 # Update camera position from held keys
                 self.update_camera()
                 
+                # Update messages
+                self.update_messages()
+                
                 # Update game state
                 if not self.paused:
                     current_time = pygame.time.get_ticks()
-                    # Day updates based on Banished-style timing but faster for farming sim
+                    # Day updates based on Banished-style timing but faster for field station
                     # Banished: 1 year = 1 hour, so 1 day = ~1.64 minutes
-                    # Farming sim: 1 day = 30 seconds at 1x (more natural pacing)
+                    # Field Station: 1 day = 30 seconds at 1x (more natural pacing)
                     base_day_time = 30000  # milliseconds per day at 1x speed  
                     day_update_time = base_day_time / self.speed
                     
@@ -1986,6 +2602,16 @@ class FarmingGame:
                 
                 # Draw tile popup if active
                 self.draw_tile_popup()
+                
+                # Draw messages last (on top)
+                self.draw_messages()
+                
+                # Draw tooltips (very last)
+                self.draw_tooltip()
+                
+                # Draw debug info if enabled
+                if self.debug_mode:
+                    self.draw_debug_info()
             
             elif self.game_state == GameState.LOAD:
                 self.draw_placeholder_screen("LOAD GAME")
@@ -2010,5 +2636,5 @@ class FarmingGame:
         sys.exit()
 
 if __name__ == "__main__":
-    game = FarmingGame()
+    game = FieldStation()
     game.run()

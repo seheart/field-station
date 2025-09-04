@@ -3,7 +3,7 @@
 
 set -e
 
-echo "🚜 Farming Game - Local Test Suite"
+echo "🚜 Field Station - Local Test Suite"
 echo "=================================="
 
 # Colors for output
@@ -20,14 +20,14 @@ print_status() {
 }
 
 # Check if we're in the right directory
-if [[ ! -f "farming_game.py" ]]; then
-    print_status $RED "❌ Error: farming_game.py not found. Run this script from the game directory."
+if [[ ! -f "field_station.py" ]]; then
+    print_status $RED "❌ Error: field_station.py not found. Run this script from the game directory."
     exit 1
 fi
 
 # 1. Syntax Check
 print_status $YELLOW "🔍 Running syntax check..."
-if python3 -m py_compile farming_game.py; then
+if python3 -m py_compile field_station.py; then
     print_status $GREEN "✅ Syntax check passed"
 else
     print_status $RED "❌ Syntax check failed"
@@ -60,7 +60,7 @@ fi
 
 # 4. Unit Tests
 print_status $YELLOW "🧪 Running unit tests..."
-if python3 test_farming_game.py; then
+if python3 test_field_station.py; then
     print_status $GREEN "✅ Unit tests passed"
 else
     print_status $RED "❌ Unit tests failed"
@@ -69,7 +69,7 @@ fi
 
 # 5. Game Launch Test
 print_status $YELLOW "🎮 Testing game launch..."
-timeout 3s python3 farming_game.py > /dev/null 2>&1 || true
+timeout 3s python3 field_station.py > /dev/null 2>&1 || true
 if [[ $? -eq 124 ]]; then
     print_status $GREEN "✅ Game launches successfully (timed out as expected)"
 else
@@ -78,7 +78,7 @@ fi
 
 # 6. File Structure Check
 print_status $YELLOW "📁 Checking file structure..."
-required_files=("farming_game.py" "test_farming_game.py" "game_data.html")
+required_files=("field_station.py" "test_field_station.py" "game_data.html")
 missing_files=()
 
 for file in "${required_files[@]}"; do
@@ -101,8 +101,8 @@ echo "To install testing dependencies:"
 echo "  pip install black flake8 pytest pytest-cov mypy"
 echo ""
 echo "To run specific checks:"
-echo "  Syntax: python3 -m py_compile farming_game.py"
+echo "  Syntax: python3 -m py_compile field_station.py"
 echo "  Style:  black --line-length=100 *.py"
 echo "  Lint:   flake8 --max-line-length=100 *.py"
-echo "  Tests:  python3 test_farming_game.py"
+echo "  Tests:  python3 test_field_station.py"
 echo ""
