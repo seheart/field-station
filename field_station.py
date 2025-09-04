@@ -676,6 +676,19 @@ class FieldStation:
             return full_name.split(' - ')[0]
         return full_name
     
+    def get_seasonal_background_color(self) -> Tuple[int, int, int]:
+        """Get light background color based on current season"""
+        if self.season == Season.WINTER:
+            return (240, 245, 250)  # Very light blue-white
+        elif self.season == Season.SPRING:
+            return (250, 248, 230)  # Very light yellow-blue
+        elif self.season == Season.SUMMER:
+            return (255, 250, 235)  # Very light yellow-orange
+        elif self.season == Season.FALL:
+            return (250, 240, 225)  # Very light orange-brown
+        else:
+            return (245, 245, 245)  # Default very light gray
+    
     def draw_tile(self, tile: Tile):
         """Draw a single isometric tile"""
         x, y = self.grid_to_screen(tile.x, tile.y)
@@ -2715,8 +2728,8 @@ class FieldStation:
                 if not self.handle_event(event):
                     running = False
             
-            # Clear screen
-            self.screen.fill(BLACK)
+            # Clear screen with seasonal background
+            self.screen.fill(self.get_seasonal_background_color())
             
             # Draw based on current state
             if self.game_state == GameState.MENU:
@@ -2783,7 +2796,7 @@ class FieldStation:
             
             elif self.game_state == GameState.PAUSE_MENU:
                 # Draw the game in the background first
-                self.screen.fill(BLACK)
+                self.screen.fill(self.get_seasonal_background_color())
                 self.draw_grid()
                 self.draw_ui()
                 
