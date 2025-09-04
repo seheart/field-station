@@ -2026,7 +2026,14 @@ class FieldStation:
     def handle_menu_event(self, event):
         """Handle events in the menu"""
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
+            if event.key == pygame.K_ESCAPE:
+                # ESC in main menu returns to game if one is in progress
+                if self.game_in_progress:
+                    self.game_state = GameState.GAME
+                    return True
+                # If no game in progress, ESC does nothing (stay in menu)
+                return True
+            elif event.key == pygame.K_UP:
                 self.menu_selection = (self.menu_selection - 1) % len(self.menu_options)
             elif event.key == pygame.K_DOWN:
                 self.menu_selection = (self.menu_selection + 1) % len(self.menu_options)
