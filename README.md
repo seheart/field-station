@@ -1,12 +1,14 @@
 # 🌽 Field Station
 
-**A scientifically-accurate farming simulation that bridges entertainment and agricultural education**
+**A scientifically-accurate farming simulation that bridges entertainment and agricultural education**  
+*Coming to Steam 2025*
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Pygame](https://img.shields.io/badge/Pygame-2.0+-green.svg)](https://www.pygame.org/)
+[![Steam](https://img.shields.io/badge/Steam-Coming_Soon-blue.svg)](https://store.steampowered.com/)
 [![License](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
 
-Field Station features real plant varieties with authentic scientific nomenclature and location-specific growing conditions. Unlike typical farming games that use generic crops, this simulation teaches actual agricultural practices while providing engaging gameplay.
+Field Station features real plant varieties with authentic scientific nomenclature and location-specific growing conditions. Unlike typical farming games that use generic crops, this simulation teaches actual agricultural practices while providing engaging gameplay. Designed for professional Steam distribution with full educational integration.
 
 ## ✨ Key Features
 
@@ -15,18 +17,19 @@ Field Station features real plant varieties with authentic scientific nomenclatu
 - **📚 Educational Value**: Learn soil science, crop rotation, and seasonal farming patterns
 - **⚡ Dynamic Systems**: Weather events, market fluctuations, and seasonal challenges
 - **🎮 Engaging Gameplay**: Isometric 3x3 grid with zoom, save/load, and progression systems
+- **🏆 Steam Integration**: Achievements, Cloud saves, Workshop support, and community features
+- **🎯 Multi-Platform**: Windows, Mac, Linux via Steam with Steam Deck compatibility
 
 ## 🚀 Quick Start
 
-### Prerequisites
-```bash
-pip install pygame
-```
+### Steam Release (Coming 2025)
+Field Station will be available on Steam with automatic installation, updates, and community features.
 
-### Installation & Run
+### Development Version
 ```bash
 git clone https://github.com/seheart/field_station.git
 cd field_station
+pip install pygame
 python3 field_station.py
 ```
 
@@ -47,7 +50,10 @@ Manage a 3x3 research farm through four seasons, making decisions about:
 
 ## 🧪 For Educators
 
-Field Station is designed for educational integration:
+Field Station is designed for educational integration via Steam:
+- **Steam Classroom Features**: Easy distribution and progress tracking
+- **Educational Steam Tags**: Discoverable in education category
+- **Workshop Integration**: Share lesson plans and custom scenarios
 - **Biology Classes**: Plant taxonomy and growth cycles
 - **Environmental Science**: Sustainable farming practices  
 - **Geography**: Regional agricultural patterns

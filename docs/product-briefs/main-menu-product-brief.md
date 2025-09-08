@@ -27,9 +27,9 @@ Field Station's main menu serves as the critical first touchpoint between users 
 
 #### 2. **Alex - High School Student**
 - **Age:** 16, interested in agriculture and environmental science  
-- **Context:** Uses for personal learning and school projects
-- **Needs:** Engaging gameplay, authentic learning, social sharing capabilities
-- **Pain Points:** Boring educational software, wants "real" gaming experience
+- **Context:** Uses for personal learning and school projects, discovers on Steam
+- **Needs:** Engaging gameplay, authentic learning, Steam achievements and community features
+- **Pain Points:** Boring educational software, wants "real" gaming experience with Steam integration
 
 #### 3. **Dr. Martinez - Agricultural Education Professor**
 - **Age:** 45, university-level instruction
@@ -41,31 +41,33 @@ Field Station's main menu serves as the critical first touchpoint between users 
 
 #### 4. **Jamie - Curious Adult Learner**
 - **Age:** 28, urban professional interested in sustainable farming
-- **Context:** Self-directed learning about agriculture
-- **Needs:** Flexible pacing, comprehensive information, practical application
+- **Context:** Self-directed learning about agriculture, browses Steam for educational content
+- **Needs:** Flexible pacing, comprehensive information, practical application, Steam reviews and community discussions
 
 ## User Journeys
 
 ### Journey 1: First-Time Teacher User
-1. **Discovery:** Arrives from educational website recommendation
-2. **Evaluation:** Quickly assesses if suitable for classroom use  
-3. **Setup:** Creates account, explores tutorial options
-4. **Classroom Prep:** Reviews educational resources, tests on own device
-5. **Implementation:** Introduces to students with confidence
+1. **Discovery:** Discovers Field Station on Steam through educational game tags or recommendations
+2. **Evaluation:** Reads Steam reviews, watches trailer, checks educational content descriptions
+3. **Purchase:** Buys on Steam, potentially with educational discount
+4. **Setup:** Downloads via Steam, explores tutorial options and educational resources
+5. **Classroom Prep:** Reviews built-in teacher materials, tests on classroom computers
+6. **Implementation:** Recommends to students via Steam, tracks their progress
 
 ### Journey 2: Returning Student User
-1. **Return:** Opens Field Station to continue learning
-2. **Resume:** Quickly accesses saved progress
-3. **Explore:** Discovers new features or challenges
+1. **Return:** Launches Field Station through Steam
+2. **Resume:** Steam Cloud saves allow seamless progress continuation across devices
+3. **Explore:** Discovers new Workshop content or achievements to unlock
 4. **Learn:** Engages with educational content while playing
-5. **Share:** Shows progress to teacher/friends
+5. **Share:** Screenshots achievements on Steam, discusses with Steam friends
 
 ### Journey 3: New Individual Learner
-1. **Curiosity:** Interested in learning about farming
-2. **Trial:** Explores without commitment pressure
-3. **Tutorial:** Guided introduction to core concepts
-4. **Engagement:** Finds learning engaging and authentic
-5. **Mastery:** Develops real agricultural understanding
+1. **Curiosity:** Browses Steam for educational or farming simulation games
+2. **Discovery:** Finds Field Station through Steam recommendations or reviews
+3. **Purchase Decision:** Influenced by Steam ratings, reviews, and trailer
+4. **Tutorial:** Guided introduction to core concepts with Steam achievement unlocks
+5. **Engagement:** Finds learning engaging, authentic, with satisfying progression
+6. **Community:** Participates in Steam discussions, shares screenshots, recommends to friends
 
 ## Current Implementation Analysis
 
@@ -163,19 +165,20 @@ Field Station currently has a **pygame-based desktop application** with the foll
 ### Technical Requirements
 
 #### Performance Specifications
-- **Load Time** ✅ *Current implementation* - Instant (native desktop app) vs target < 3 seconds for web
-- **Browser Support** ❌ *Platform mismatch* - Currently desktop app, needs web support: Chrome, Firefox, Safari, Edge
-- **Device Support** 🔄 *Partially met* - Desktop optimization complete, needs tablet, Chromebook optimization
-- **Network** ✅ *Already implemented* - Fully offline capable (desktop app)
-- **Accessibility** ❌ *Missing* - WCAG 2.1 AA compliance needs implementation
+- **Load Time** ✅ *Current implementation* - Instant (native desktop app) - perfect for Steam
+- **Steam Integration** 🔄 *Needs implementation* - Steam Workshop, achievements, cloud saves, overlay support
+- **Platform Support** ✅ *Excellent foundation* - Desktop optimization ideal for Steam (Windows/Mac/Linux)
+- **Hardware Requirements** 🔄 *Needs optimization* - Target broad Steam hardware compatibility
+- **Offline Capability** ✅ *Already implemented* - Full offline functionality (Steam advantage)
+- **Performance Scaling** 🔄 *Needs enhancement* - Support for various Steam Deck and desktop configurations
 
 #### Platform Considerations
-- **Current Platform** ✅ *Desktop native* - Python/pygame desktop application
-- **Target Platform** ❌ *Web migration needed* - Responsive web design for educational access
-- **Responsive Design** ❌ *Not applicable yet* - Need fluid layouts for 320px to 4K displays  
-- **Touch Support** ❌ *Missing* - Tablet and touchscreen optimization needed
+- **Current Platform** ✅ *Desktop native* - Python/pygame desktop application - perfect Steam foundation
+- **Target Platform** ✅ *Steam distribution* - Professional game distribution with educational focus
+- **Multi-Resolution Support** 🔄 *Needs enhancement* - Steam Deck (1280x800) to 4K desktop displays
+- **Controller Support** ❌ *Missing* - Steam Controller and gamepad optimization for accessibility
 - **Keyboard Navigation** ✅ *Already implemented* - Full functionality without mouse
-- **Offline Capability** ✅ *Already implemented* - Full offline functionality (desktop app advantage)
+- **Steam Features** ❌ *Missing* - Workshop integration, achievements, cloud saves, community features
 
 ## Visual Design Requirements
 
@@ -220,9 +223,11 @@ Field Station currently has a **pygame-based desktop application** with the foll
 
 ### Competitive Advantages
 - **Scientific Accuracy:** Real agricultural data and practices
-- **Educational Integration:** Purpose-built for classroom use
-- **Accessibility:** Inclusive design from day one  
-- **Open Source:** Transparent development and community contribution
+- **Educational Integration:** Purpose-built for classroom use with Steam accessibility
+- **Steam Platform Benefits:** Professional distribution, automatic updates, community features
+- **Cross-Platform Desktop:** Windows, Mac, Linux support through Steam
+- **Steam Workshop:** User-generated educational content and lesson plans
+- **Professional Presentation:** Steam store credibility for institutional adoption
 
 ## Current State Assessment & Development Priorities
 
@@ -236,30 +241,32 @@ Field Station currently has a **pygame-based desktop application** with the foll
 - **Educational Integration** - Tutorials and Achievements systems in place
 
 ### Critical Gaps ❌
-- **Web Platform** - Educational institutions need browser-based access
+- **Steam Integration** - Missing Steam achievements, Workshop, Cloud saves, overlay support
 - **About/Credits Section** - Missing educational credibility indicators
 - **Enhanced Educational Resources** - Basic help needs expansion for teachers
-- **User Account System** - No classroom management capabilities
-- **Accessibility Compliance** - Missing WCAG 2.1 AA features
-- **Touch/Mobile Support** - Desktop-only limits classroom flexibility
+- **Controller Support** - Missing Steam Controller and gamepad accessibility options
+- **Steam Community Features** - No discussion boards, user-generated content support
+- **Multi-Resolution Support** - Needs Steam Deck and various monitor optimization
 
 ### Development Priorities
 
-#### Phase 1: Foundation Enhancement (Current Platform)
-1. **Add About/Credits section** - Establish educational credibility
+#### Phase 1: Steam Preparation (Current Platform Enhancement)
+1. **Add About/Credits section** - Establish educational credibility for Steam store page
 2. **Expand Educational Resources** - Teacher guides, curriculum alignment docs
-3. **Enhance Visual Polish** - Professional agricultural theme refinement
-4. **Accessibility Improvements** - Screen reader support, high contrast mode
+3. **Enhance Visual Polish** - Professional agricultural theme for Steam presentation
+4. **Multi-Resolution Support** - Steam Deck (1280x800) to 4K desktop compatibility
 
-#### Phase 2: Platform Migration Planning 
-1. **Web Technology Assessment** - Evaluate frameworks for pygame-to-web migration
-2. **Responsive Design System** - Plan multi-device interface adaptation
-3. **User Account Architecture** - Design classroom management system
+#### Phase 2: Steam Integration Implementation
+1. **Steam SDK Integration** - Achievements, Cloud saves, overlay support
+2. **Controller Support** - Steam Controller, Xbox, PlayStation gamepad compatibility
+3. **Steam Workshop Integration** - User-generated educational content system
+4. **Community Features** - Steam discussions, screenshot sharing, reviews
 
-#### Phase 3: Web Platform Implementation
-1. **Core Menu Migration** - Port existing menu functionality to web
-2. **Touch Interface Adaptation** - Tablet-optimized interactions
-3. **Classroom Features** - Teacher accounts, student progress tracking
+#### Phase 3: Steam Launch Optimization
+1. **Educational Steam Tags** - Proper categorization for discoverability
+2. **Educational Pricing Strategy** - Student discounts, institutional licenses
+3. **Community Building** - Steam groups for educators, content creators
+4. **Post-Launch Content** - Regular updates via Steam for community engagement
 
 ## Risk Assessment
 
