@@ -1,0 +1,93 @@
+name: 🐛 Bug Report
+description: Report a bug in Field Station
+title: "[BUG] "
+labels: ["type:bug", "priority:medium"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please fill out the sections below.
+
+  - type: input
+    id: version
+    attributes:
+      label: Field Station Version
+      description: What version of Field Station are you using?
+      placeholder: e.g., v0.1.0 or commit hash
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area Affected
+      description: Which area of the game is affected?
+      options:
+        - Crops & Plant Growth
+        - Weather & Environment
+        - User Interface
+        - Simulation Engine
+        - Educational Content
+        - Data & Scientific Accuracy
+        - Performance
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: Bug Description
+      description: A clear description of what the bug is
+      placeholder: Tell us what happened!
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Your environment details
+      placeholder: |
+        - OS: [e.g., Windows 10, macOS 12.0, Ubuntu 20.04]
+        - Browser (if applicable): [e.g., Chrome 98, Firefox 97]
+        - Python version: [e.g., 3.9.0]
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Any other context about the problem
+      placeholder: Screenshots, logs, etc.

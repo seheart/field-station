@@ -1,0 +1,91 @@
+name: 🎯 Epic
+description: Large feature spanning multiple issues
+title: "[EPIC] "
+labels: ["epic", "priority:high"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Create an epic for a large feature or initiative that will span multiple issues.
+
+  - type: input
+    id: epic_title
+    attributes:
+      label: Epic Title
+      description: Short, descriptive title for this epic
+      placeholder: e.g., "Complete Crop Growth System"
+    validations:
+      required: true
+
+  - type: textarea
+    id: epic_description
+    attributes:
+      label: Epic Description
+      description: High-level overview of what this epic accomplishes
+    validations:
+      required: true
+
+  - type: textarea
+    id: business_value
+    attributes:
+      label: Business/Educational Value
+      description: Why is this epic important? What value does it provide?
+    validations:
+      required: true
+
+  - type: textarea
+    id: success_criteria
+    attributes:
+      label: Success Criteria
+      description: How will we measure success for this epic?
+      placeholder: |
+        - [ ] Success criteria 1
+        - [ ] Success criteria 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: user_stories
+    attributes:
+      label: Key User Stories
+      description: Main user stories or features included in this epic
+      placeholder: |
+        - As a [user type], I want [goal] so that [benefit]
+        - As a [user type], I want [goal] so that [benefit]
+
+  - type: textarea
+    id: technical_approach
+    attributes:
+      label: Technical Approach
+      description: High-level technical implementation approach
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Other epics, features, or external dependencies
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks & Considerations
+      description: Potential risks, challenges, or important considerations
+
+  - type: input
+    id: target_milestone
+    attributes:
+      label: Target Milestone
+      description: Which milestone or release is this epic targeted for?
+      placeholder: e.g., v1.0, Q2 2024
+
+  - type: textarea
+    id: related_issues
+    attributes:
+      label: Related Issues
+      description: Link existing or planned issues that are part of this epic
+      placeholder: |
+        - #123 - Implement basic crop types
+        - #124 - Add growth stages
+        - #125 - Weather effects on crops
