@@ -246,5 +246,5 @@ Natural language voice interface that allows hands-free interaction with the far
 
 **🌽 AI-Enhanced Field Station: Where artificial intelligence meets agricultural science to create the most advanced educational farming simulation ever developed.**
 
-*AI Ideas Document v1.0 - September 2024*  
+*AI Ideas Document v0.1 - September 2024*  
 *Roadmap for transforming Field Station into an intelligent agricultural learning platform*

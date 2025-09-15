@@ -1,0 +1,57 @@
+{
+  "FS-EPIC-001": {
+    "id": "FS-EPIC-001",
+    "title": "Core Game Engine & UI Framework",
+    "description": "Build the foundational game engine, UI framework, and core game mechanics",
+    "status": "TicketStatus.IN_PROGRESS",
+    "priority": "Priority.CRITICAL",
+    "start_date": "2024-09-01",
+    "target_date": "2024-12-01",
+    "progress": 0.0,
+    "ticket_ids": []
+  },
+  "FS-EPIC-002": {
+    "id": "FS-EPIC-002",
+    "title": "User Experience & Interface Design",
+    "description": "Design and implement all user interfaces, menus, and user experience flows",
+    "status": "TicketStatus.IN_PROGRESS",
+    "priority": "Priority.HIGH",
+    "start_date": "2024-10-01",
+    "target_date": "2024-11-15",
+    "progress": 0.0,
+    "ticket_ids": []
+  },
+  "FS-EPIC-003": {
+    "id": "FS-EPIC-003",
+    "title": "Quality Assurance & Testing Framework",
+    "description": "Build comprehensive QA framework with automated testing and user story validation",
+    "status": "TicketStatus.IN_PROGRESS",
+    "priority": "Priority.HIGH",
+    "start_date": "2024-11-01",
+    "target_date": "2024-12-15",
+    "progress": 0.0,
+    "ticket_ids": []
+  },
+  "FS-EPIC-004": {
+    "id": "FS-EPIC-004",
+    "title": "Documentation & Project Management",
+    "description": "Create comprehensive documentation, wiki, and project management systems",
+    "status": "TicketStatus.IN_PROGRESS",
+    "priority": "Priority.MEDIUM",
+    "start_date": "2024-11-15",
+    "target_date": "2025-01-01",
+    "progress": 0.0,
+    "ticket_ids": []
+  },
+  "FS-EPIC-005": {
+    "id": "FS-EPIC-005",
+    "title": "Game Features & Content",
+    "description": "Implement core game features, farming mechanics, and game content",
+    "status": "TicketStatus.IN_PROGRESS",
+    "priority": "Priority.HIGH",
+    "start_date": "2024-12-01",
+    "target_date": "2025-03-01",
+    "progress": 0.0,
+    "ticket_ids": []
+  }
+}

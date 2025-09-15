@@ -1,0 +1,209 @@
+{
+  "summary": {
+    "total_tests": 21,
+    "passed_tests": 14,
+    "success_rate": 66.66666666666666,
+    "overall_status": "\u26a0\ufe0f PARTIAL"
+  },
+  "results": {
+    "framework_integration": [
+      {
+        "test": "UI Framework Import",
+        "success": true,
+        "message": "All UI framework components imported successfully",
+        "details": {
+          "components": [
+            "UIManager",
+            "MenuPanel",
+            "UITheme",
+            "MainMenuPanel",
+            "ContentArea"
+          ]
+        }
+      },
+      {
+        "test": "Font Creation",
+        "success": true,
+        "message": "All required fonts created successfully",
+        "details": {
+          "fonts": [
+            "title",
+            "emoji",
+            "content",
+            "ui"
+          ],
+          "font_sizes": {
+            "title": 49,
+            "emoji": 128,
+            "content": 13,
+            "ui": 16
+          }
+        }
+      },
+      {
+        "test": "Framework Page Creation",
+        "success": true,
+        "message": "Framework page created successfully",
+        "details": {
+          "ui_type": "UIManager",
+          "element_count": 1
+        }
+      },
+      {
+        "test": "Menu Panel Creation",
+        "success": true,
+        "message": "Menu panel created successfully",
+        "details": {
+          "size": "400x300",
+          "position": "(440, 210)",
+          "children_count": 2
+        }
+      },
+      {
+        "test": "Content Population",
+        "success": true,
+        "message": "Content population working correctly",
+        "details": {
+          "content_items": 7,
+          "method_chaining": "working"
+        }
+      },
+      {
+        "test": "Rendering Pipeline",
+        "success": true,
+        "message": "Rendering pipeline completed without errors",
+        "details": {
+          "screen_size": "1920x1080"
+        }
+      }
+    ],
+    "visual_consistency": [
+      {
+        "screen": "Help Screen",
+        "success": false,
+        "message": "Exception: 'FieldStation' object has no attribute 'draw_help_screen_framework'"
+      },
+      {
+        "screen": "About Screen",
+        "success": false,
+        "message": "Exception: 'FieldStation' object has no attribute 'draw_about_screen_framework'"
+      },
+      {
+        "screen": "Settings Screen",
+        "success": false,
+        "message": "Exception: 'FieldStation' object has no attribute 'draw_settings_screen_framework'"
+      },
+      {
+        "screen": "Controls Screen",
+        "success": false,
+        "message": "Exception: 'FieldStation' object has no attribute 'draw_controls_screen_framework'"
+      }
+    ],
+    "performance": [
+      {
+        "test": "Rendering Performance",
+        "success": true,
+        "message": "Average render time: 10.79ms",
+        "details": {
+          "average": 10.786131250013872,
+          "min": 10.03956499994274,
+          "max": 15.585016999921208,
+          "fps": 92.71164765389943
+        }
+      },
+      {
+        "test": "Memory Usage",
+        "success": true,
+        "message": "UI elements created: 10",
+        "details": {
+          "elements_created": 10,
+          "test_iterations": 10
+        }
+      }
+    ],
+    "error_handling": [
+      {
+        "test": "Invalid Font",
+        "success": true,
+        "message": "Invalid font handled gracefully",
+        "details": {}
+      },
+      {
+        "test": "Missing Content Callback",
+        "success": false,
+        "message": "Missing content callback caused exception: 'NoneType' object is not callable",
+        "details": {}
+      },
+      {
+        "test": "Invalid Emoji",
+        "success": true,
+        "message": "Invalid emoji handled with fallback",
+        "details": {}
+      },
+      {
+        "test": "Large Content",
+        "success": true,
+        "message": "Large content handled successfully",
+        "details": {}
+      },
+      {
+        "test": "Empty Content",
+        "success": true,
+        "message": "Empty content handled successfully",
+        "details": {}
+      }
+    ],
+    "accessibility": [
+      {
+        "test": "Color Contrast",
+        "success": false,
+        "message": "Color contrast issues: Primary text contrast too low: 3.46, Secondary text contrast too low: 2.75",
+        "details": {
+          "primary_contrast": 3.4557305110996377,
+          "secondary_contrast": 2.74586990191017
+        }
+      },
+      {
+        "test": "Font Sizes",
+        "success": false,
+        "message": "Fonts too small for accessibility: content: 13px",
+        "details": {
+          "title": 49,
+          "emoji": 128,
+          "content": 13,
+          "ui": 16
+        }
+      },
+      {
+        "test": "Emoji Fallbacks",
+        "success": true,
+        "message": "All test emojis have fallbacks",
+        "details": {
+          "tested_emojis": [
+            "\ud83c\udfc6",
+            "\u2753",
+            "\u2699\ufe0f",
+            "\u2139\ufe0f",
+            "\u2328\ufe0f",
+            "\ud83c\udf31",
+            "\ud83d\udcd6"
+          ],
+          "fallback_count": 12
+        }
+      },
+      {
+        "test": "Text Wrapping",
+        "success": true,
+        "message": "Text wrapping functionality working",
+        "details": {
+          "test_completed": true
+        }
+      }
+    ]
+  },
+  "recommendations": [
+    "Check visual consistency across menu screens",
+    "Improve error handling for edge cases",
+    "Address accessibility issues for better user experience"
+  ]
+}

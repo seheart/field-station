@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Field Station - Menu Design Concept</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Open+Sans:wght@400;600&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Open Sans', sans-serif;
+            background: linear-gradient(135deg, 
+                #8B7355 0%,     /* Warm brown */
+                #A0916B 25%,    /* Sandy brown */
+                #7A8471 50%,    /* Sage green */
+                #6B7B5E 75%,    /* Forest green */
+                #5D6B4F 100%    /* Deep forest */
+            );
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Organic texture overlay */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(139, 115, 85, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(107, 123, 94, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(160, 145, 107, 0.2) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .menu-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Decorative elements inspired by the bridge image */
+        .decorative-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            opacity: 0.15;
+        }
+        
+        .stone-arch {
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 200px;
+            height: 120px;
+            border: 3px solid #8B7355;
+            border-radius: 100px 100px 0 0;
+            border-bottom: none;
+        }
+        
+        .stone-arch::before {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 20px;
+            right: 20px;
+            height: 3px;
+            background: #8B7355;
+        }
+        
+        .foliage-corner {
+            position: absolute;
+            top: 5%;
+            right: 5%;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, 
+                rgba(218, 165, 32, 0.3) 0%, 
+                rgba(160, 82, 45, 0.2) 50%, 
+                transparent 70%
+            );
+            border-radius: 50%;
+        }
+        
+        .water-element {
+            position: absolute;
+            bottom: 10%;
+            left: 15%;
+            width: 300px;
+            height: 20px;
+            background: linear-gradient(90deg, 
+                rgba(135, 206, 235, 0.3) 0%,
+                rgba(100, 149, 237, 0.2) 100%
+            );
+            border-radius: 10px;
+            animation: water-flow 3s ease-in-out infinite;
+        }
+        
+        @keyframes water-flow {
+            0%, 100% { transform: scaleX(1); }
+            50% { transform: scaleX(1.1); }
+        }
+        
+        /* Main title */
+        .title {
+            font-family: 'Merriweather', serif;
+            font-size: 4.5rem;
+            font-weight: 700;
+            color: #F5E6D3;
+            text-shadow: 
+                2px 2px 4px rgba(0,0,0,0.5),
+                0 0 20px rgba(245, 230, 211, 0.3);
+            margin-bottom: 0.5rem;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 300;
+            color: #D4C4A8;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+            margin-bottom: 3rem;
+            text-align: center;
+            font-style: italic;
+            letter-spacing: 1px;
+        }
+        
+        /* Menu options */
+        .menu-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .menu-option {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #F5E6D3;
+            background: linear-gradient(135deg, 
+                rgba(139, 115, 85, 0.7) 0%,
+                rgba(107, 123, 94, 0.7) 100%
+            );
+            border: 2px solid rgba(245, 230, 211, 0.3);
+            border-radius: 25px;
+            padding: 15px 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+            position: relative;
+            min-width: 280px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .menu-option:hover {
+            background: linear-gradient(135deg, 
+                rgba(160, 145, 107, 0.8) 0%,
+                rgba(122, 132, 113, 0.8) 100%
+            );
+            border-color: rgba(245, 230, 211, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 16px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        
+        .menu-option::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background: #DAA520;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .menu-option:hover::before {
+            opacity: 1;
+        }
+        
+        /* Bottom instructions */
+        .instructions {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Open Sans', sans-serif;
+            font-size: 0.9rem;
+            color: #A0916B;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+        
+        /* Subtle animation for the whole container */
+        .menu-container {
+            animation: gentle-float 6s ease-in-out infinite;
+        }
+        
+        @keyframes gentle-float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        /* Version info */
+        .version-info {
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            font-size: 0.8rem;
+            color: #7A8471;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="decorative-elements">
+        <div class="stone-arch"></div>
+        <div class="foliage-corner"></div>
+        <div class="water-element"></div>
+    </div>
+    
+    <div class="menu-container">
+        <h1 class="title">FIELD STATION</h1>
+        <p class="subtitle">Scientific Agricultural Research Simulation</p>
+        
+        <div class="menu-options">
+            <div class="menu-option">🌱 New Research Project</div>
+            <div class="menu-option">📊 Load Saved Data</div>
+            <div class="menu-option">🎓 Tutorial & Learning</div>
+            <div class="menu-option">⚙️ Settings</div>
+            <div class="menu-option">❓ Help & Documentation</div>
+            <div class="menu-option">🚪 Exit Laboratory</div>
+        </div>
+        
+        <div class="instructions">
+            Use arrow keys or mouse to navigate • ENTER or click to select
+        </div>
+    </div>
+    
+    <div class="version-info">v0.1</div>
+</body>
+</html>
+

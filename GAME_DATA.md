@@ -269,7 +269,7 @@ Advanced field research troubleshooting and development features:
 
 ---
 
-**🌽 Field Station - Game Data Reference v1.0**
+**🌽 Field Station - Game Data Reference v0.1**
 
 *Updated: September 4, 2024 - Major Feature Update*
 

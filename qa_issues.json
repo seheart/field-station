@@ -1,0 +1,41 @@
+[
+  {
+    "id": "QA-1",
+    "created_at": "2025-09-07T20:34:48.600599",
+    "status": "Open",
+    "title": "Enter key in farm name field provides no feedback",
+    "description": "When user presses Enter in the farm name input field, no visual feedback is provided to indicate the action was processed.",
+    "severity": "High",
+    "issue_type": "Bug",
+    "component": "Form Validation",
+    "user_story_id": "US003",
+    "test_step": "Step 4: press_key K_RETURN",
+    "screenshot_path": null,
+    "reproduction_steps": [
+      "Navigate to Farm Setup page",
+      "Click in farm name input field",
+      "Type a farm name",
+      "Press Enter key",
+      "Observe no visual feedback or field state change"
+    ]
+  },
+  {
+    "id": "QA-2",
+    "created_at": "2025-09-07T20:34:48.600718",
+    "status": "Open",
+    "title": "Menu click detection not working for navigation",
+    "description": "Main menu items cannot be clicked to navigate to other pages. Click detection appears broken.",
+    "severity": "High",
+    "issue_type": "Bug",
+    "component": "Navigation",
+    "user_story_id": "US001",
+    "test_step": "Step 3: click New Game",
+    "screenshot_path": null,
+    "reproduction_steps": [
+      "Load main menu",
+      "Attempt to click 'New Game' menu item",
+      "Observe navigation does not occur",
+      "Error: Could not find menu item"
+    ]
+  }
+]

@@ -23,9 +23,9 @@ Create a scientifically-accurate, visually appealing farming simulation with Ban
 
 ---
 
-## ✅ **CURRENT STATUS - v1.0 ACHIEVED**
+## ✅ **CURRENT STATUS - v0.1 ACHIEVED**
 
-### **v1.0 Completed Features**
+### **v0.1 Completed Features**
 - ✅ **Save/load functionality** - Complete JSON-based persistence system
 - ✅ **Enhanced weather system** - Extreme weather events with real gameplay impact
 - ✅ **Dynamic market system** - Seasonal price fluctuations and daily variance
@@ -406,7 +406,7 @@ Create a scientifically-accurate, visually appealing farming simulation with Ban
 
 ---
 
-## 🔮 **Post-v1.0 Roadmap**
+## 🔮 **Post-v0.1 Roadmap**
 
 ### **v1.1: Enhanced Farming Systems**
 - Equipment upgrades and maintenance
@@ -438,4 +438,4 @@ Create a scientifically-accurate, visually appealing farming simulation with Ban
 
 *Development Roadmap v2.0 - September 2024*  
 *Total Estimated Timeline: 6-8 months for full implementation*  
-*Building upon solid v1.0 foundation with core systems already achieved*
+*Building upon solid v0.1 foundation with core systems already achieved*

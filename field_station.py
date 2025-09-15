@@ -18,12 +18,18 @@ import random
 import os
 import json
 from datetime import datetime, timedelta
+
+# Import the new UI framework
+try:
+    from ui_framework import UIManager, MenuPanel
+    UI_FRAMEWORK_AVAILABLE = True
+except ImportError as e:
+    UI_FRAMEWORK_AVAILABLE = False
+    print(f"UI Framework not available: {e}, using legacy rendering")
 from enum import Enum
 from dataclasses import dataclass
 from typing import Optional, Tuple, List
-
-# Import our design system
-from design_constants import *
+from menu_icons import get_menu_icon, get_menu_icon_text
 
 # Set window class BEFORE initializing Pygame
 os.environ['SDL_VIDEO_X11_WMCLASS'] = 'field-station'
@@ -31,23 +37,41 @@ os.environ['SDL_VIDEO_X11_WMCLASS'] = 'field-station'
 # Initialize Pygame
 pygame.init()
 
-# Override screen dimensions from design system if needed
+# Constants
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 800
+GRID_WIDTH = 3
+GRID_HEIGHT = 3
+TILE_WIDTH = 64
+TILE_HEIGHT = 32
 
-# Game-specific constants (others come from design_constants.py)
+# Game Constants
 SEED_COST = 10
 HARVEST_SOIL_DAMAGE = 0.05
 DAY_LENGTH_MS = 30000
 MESSAGE_DURATION = 3000
 
-# Font Sizes - Updated to use design system
+# Font Sizes
 FONT_SIZES = {
-    'title': FONT_HEADING_1 * 2,  # 64 for title screen
-    'heading': FONT_HEADING_1,      # 32
-    'body': FONT_BODY_BASE,         # 16
-    'small': FONT_BODY_SMALL        # 14
+    'title': 72,
+    'heading': 48,
+    'body': 24,
+    'small': 16
 }
+
+# Colors
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+GREEN = (34, 139, 34)
+BROWN = (139, 69, 19)
+BLUE = (100, 149, 237)
+YELLOW = (255, 215, 0)
+GRAY = (128, 128, 128)
+DARK_GREEN = (0, 100, 0)
+LIGHT_BROWN = (205, 133, 63)
+LIGHT_GREEN = (144, 238, 144)
+DARK_GRAY = (50, 50, 50)
+RED = (255, 0, 0)
 
 # Seasons
 class Season(Enum):
@@ -190,6 +214,7 @@ class GameState(Enum):
     HELP = 7
     FARM_SETUP = 8
     PAUSE_MENU = 9
+    ABOUT = 10
 
 class FieldStation:
     def __init__(self):
@@ -208,6 +233,16 @@ class FieldStation:
         self.ui_font = pygame.font.Font(None, 24)
         self.menu_font = pygame.font.Font(None, 48)
         self.menu_title_font = pygame.font.Font(None, 72)
+        
+        # Try to load emoji font - larger base size for better scaling
+        try:
+            self.emoji_font = pygame.font.Font("/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf", 48)
+        except Exception as e:
+            # Try alternative emoji font locations
+            try:
+                self.emoji_font = pygame.font.SysFont("Segoe UI Emoji", 48)
+            except:
+                self.emoji_font = None  # Will use fallback
         
         # Game states
         self.game_state = GameState.MENU
@@ -387,6 +422,76 @@ class FieldStation:
             'help': {'pos': (icon_start_x - self.icon_spacing, icon_y), 'panel': None},
             'settings': {'pos': (icon_start_x, icon_y), 'panel': None}
         }
+    
+    # ============================================================================
+    # UI FRAMEWORK INTEGRATION
+    # ============================================================================
+    
+    def create_framework_fonts(self) -> dict:
+        """Create font dictionary for UI framework"""
+        return {
+            'title': self.menu_title_font,
+            'emoji': self.emoji_font,
+            'content': self.font,
+            'ui': self.ui_font
+        }
+    
+    def create_framework_page(self, title: str, emoji: str, content_callback) -> 'UIManager':
+        """
+        Create a page using the UI framework
+        
+        Args:
+            title: Page title
+            emoji: Emoji for title
+            content_callback: Function that takes content_area and populates it
+        
+        Returns:
+            UIManager instance ready for rendering
+        """
+        if not UI_FRAMEWORK_AVAILABLE:
+            return None
+            
+        ui = UIManager(self.screen)
+        ui.draw_warm_gradient_background()
+        
+        # Create panel
+        panel = MenuPanel(title, emoji, width=700, height=500)
+        panel.set_fonts(**self.create_framework_fonts())
+        
+        # Let callback populate content
+        content_callback(panel.content_area)
+        
+        ui.add_element(panel)
+        return ui
+    
+    def render_help_page_framework(self):
+        """Example: Render help page using framework"""
+        def populate_content(content_area):
+            fonts = self.create_framework_fonts()
+            content_area.add_header("Welcome to Field Station!", fonts['ui']) \
+                .add_spacer() \
+                .add_text("Field Station is an agricultural simulation game where you can:", fonts['content']) \
+                .add_spacer() \
+                .add_text("• Plant and grow various crops", fonts['content']) \
+                .add_text("• Monitor soil quality and conditions", fonts['content']) \
+                .add_text("• Track detailed growth data", fonts['content']) \
+                .add_text("• Harvest and sell your produce", fonts['content']) \
+                .add_spacer() \
+                .add_header("Getting Started:", fonts['ui']) \
+                .add_text("1. Click on empty tiles to plant crops", fonts['content']) \
+                .add_text("2. Wait for crops to grow (time advances automatically)", fonts['content']) \
+                .add_text("3. Click on ready crops to harvest them", fonts['content']) \
+                .add_text("4. Use the market panel to sell your harvest", fonts['content'])
+        
+        ui = self.create_framework_page("HELP & TUTORIALS", "📖", populate_content)
+        if ui:
+            ui.render()
+            return ui
+        return None
+    
+    # ============================================================================
+    # END UI FRAMEWORK INTEGRATION
+    # ============================================================================
     
     def screen_to_grid(self, x, y) -> Optional[Tuple[int, int]]:
         """Convert screen coordinates to grid coordinates - WITH DIAMOND SHAPE CHECK"""
@@ -1335,7 +1440,7 @@ class FieldStation:
         # Farm name and location (if set)
         if hasattr(self, 'farm_name') and self.farm_name:
             farm_info = f"{self.farm_name} - {self.farm_location}"
-            farm_text = self.ui_font.render(farm_info, True, LIGHT_GREEN)
+            farm_text = self.ui_font.render(farm_info, True, (160, 130, 100))
             farm_rect = farm_text.get_rect(center=(center_x, 15))
             self.screen.blit(farm_text, farm_rect)
             date_y = 35  # Push date down
@@ -1446,29 +1551,28 @@ class FieldStation:
                 self.draw_panel(panel_id, panel_data)
     
     def draw_panel(self, panel_id, panel):
-        """Draw a specific modular panel using design system"""
+        """Draw a specific modular panel"""
         x, y, w, h = panel['rect']
         
-        # Panel background with design system colors
+        # Panel background
         s = pygame.Surface((w, h))
-        s.set_alpha(240)
-        s.fill(SURFACE_OVERLAY)
+        s.set_alpha(220)
+        s.fill((30, 30, 30))
         self.screen.blit(s, (x, y))
-        pygame.draw.rect(self.screen, SURFACE_BORDER, (x, y, w, h), 2)
+        pygame.draw.rect(self.screen, WHITE, (x, y, w, h), 2)
         
-        # Title bar with design system styling
-        title_height = PANEL_HEADER_HEIGHT
-        pygame.draw.rect(self.screen, SURFACE_RAISED, (x, y, w, title_height))
-        pygame.draw.rect(self.screen, SURFACE_BORDER, (x, y, w, title_height), 1)
+        # Title bar with close button
+        title_height = 25
+        pygame.draw.rect(self.screen, (50, 50, 50), (x, y, w, title_height))
         
-        title_text = self.ui_font.render(panel['title'], True, TEXT_PRIMARY)
-        self.screen.blit(title_text, (x + SPACE_XS, y + SPACE_XS))
+        title_text = self.ui_font.render(panel['title'], True, WHITE)
+        self.screen.blit(title_text, (x + 5, y + 3))
         
-        # Close button with design system colors
-        close_rect = pygame.Rect(x + w - 22, y + SPACE_XXS, 18, 18)
-        pygame.draw.rect(self.screen, SURFACE_RAISED, close_rect)
-        pygame.draw.rect(self.screen, ERROR_RED, close_rect, 1)
-        close_text = self.small_font.render("×", True, TEXT_PRIMARY)
+        # Close button
+        close_rect = pygame.Rect(x + w - 22, y + 3, 18, 18)
+        pygame.draw.rect(self.screen, (80, 80, 80), close_rect)
+        pygame.draw.rect(self.screen, RED, close_rect, 1)
+        close_text = self.small_font.render("×", True, WHITE)
         close_text_rect = close_text.get_rect(center=close_rect.center)
         self.screen.blit(close_text, close_text_rect)
         
@@ -1504,7 +1608,7 @@ class FieldStation:
         self.screen.blit(date_text, (x, stats_y))
         stats_y += 20
         
-        season_text = self.font.render(f"Season: {self.season.name.title()}", True, LIGHT_GREEN)
+        season_text = self.font.render(f"Season: {self.season.name.title()}", True, (160, 130, 100))
         self.screen.blit(season_text, (x, stats_y))
         stats_y += 25
         
@@ -1596,39 +1700,216 @@ class FieldStation:
     
     def get_menu_item_rect(self, index):
         """Get the rectangle for a menu item for mouse detection"""
-        return pygame.Rect(SCREEN_WIDTH // 2 - 200, 350 + index * 60 - 25, 400, 50)
+        spacing = getattr(self, 'menu_button_spacing', 50)
+        button_y = getattr(self, 'menu_buttons_start_y', SCREEN_HEIGHT // 2) + index * spacing
+        return pygame.Rect(SCREEN_WIDTH // 2 - 200, button_y, 400, 45)
     
     def draw_menu(self):
-        """Draw the main menu"""
-        # Title
-        title = self.menu_title_font.render("FIELD STATION", True, GREEN)
-        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 150))
+        """Draw the main menu using the specialized framework component"""
+        if not UI_FRAMEWORK_AVAILABLE:
+            return self.draw_menu_legacy()
+        
+        # Import the new component
+        from ui_framework import UIManager, MainMenuPanel
+        
+        # Draw gradient background
+        ui = UIManager(self.screen)
+        ui.draw_warm_gradient_background()
+        
+        # Create the specialized main menu panel if not exists or update selection
+        if not hasattr(self, 'menu_panel'):
+            self.menu_panel = MainMenuPanel(
+                "FIELD STATION",
+                "Grow, Learn, Discover - A Playful Plant Growing Experience",
+                self.menu_options,
+                self.menu_selection
+            )
+            # Set fonts
+            self.menu_panel.set_fonts(
+                self.menu_title_font,  # title
+                self.font,             # subtitle
+                self.menu_font         # buttons
+            )
+        else:
+            # Update the selected index to match current selection
+            self.menu_panel.selected_index = self.menu_selection
+        
+        # Add to UI manager and render
+        ui.add_element(self.menu_panel)
+        ui.render()
+        
+        return ui
+    
+    def draw_menu_framework(self):
+        """Draw main menu using framework with interactive overlay"""
+        # Create content for the information panel
+        def populate_content(content_area):
+            fonts = self.create_framework_fonts()
+            content_area.add_header("Grow, Learn, Discover - Scientific Agriculture Awaits!", fonts['ui']) \
+                .add_spacer() \
+                .add_text("[S] Create and manage your own farm", fonts['content']) \
+                .add_text("[chart] Track detailed growth data and soil quality", fonts['content']) \
+                .add_text("[target] Learn real agricultural science through gameplay", fonts['content']) \
+                .add_text("[flask] Experiment with different crops and techniques", fonts['content']) \
+                .add_spacer() \
+                .add_header("Game Features:", fonts['ui']) \
+                .add_text("• Realistic crop growth simulation", fonts['content']) \
+                .add_text("• Scientific data tracking and analysis", fonts['content']) \
+                .add_text("• Weather system affecting crops", fonts['content']) \
+                .add_text("• Market dynamics and economics", fonts['content']) \
+                .add_spacer() \
+                .add_text("Use arrow keys and Enter to navigate menu options", (140, 120, 100), self.small_font)
+        
+        # Create UI with smaller panel positioned on the left
+        ui = UIManager(self.screen)
+        ui.draw_warm_gradient_background()
+        
+        # Create smaller panel positioned on left side for two-column layout
+        panel_x = SCREEN_WIDTH // 2 - 350  # Left side positioning
+        panel_y = (SCREEN_HEIGHT - 450) // 2  # Centered vertically
+        panel = MenuPanel("FIELD STATION", "🌾", width=500, height=450, x=panel_x, y=panel_y)
+        panel.set_fonts(**self.create_framework_fonts())
+        
+        # Populate content
+        populate_content(panel.content_area)
+        
+        ui.add_element(panel)
+        ui.render()
+        
+        # Overlay interactive menu buttons on the right
+        self.draw_main_menu_buttons_overlay()
+        
+        # Version info
+        version = self.small_font.render("v0.1", True, (180, 180, 180))
+        self.screen.blit(version, (SCREEN_WIDTH - 50, SCREEN_HEIGHT - 30))
+    
+    def draw_main_menu_buttons_overlay(self):
+        """Draw interactive main menu buttons on top of framework panel"""
+        # Calculate button positions - positioned on right side of the panel
+        total_menu_items = len(self.menu_options)
+        button_spacing = 55
+        buttons_start_y = SCREEN_HEIGHT // 2 - (total_menu_items * button_spacing // 2) + 20
+        button_x = SCREEN_WIDTH // 2 + 50  # Position on right side of panel
+        
+        mouse_pos = pygame.mouse.get_pos()
+        for i, option in enumerate(self.menu_options):
+            button_y = buttons_start_y + i * button_spacing
+            button_rect = pygame.Rect(button_x, button_y, 280, 45)  # Increased width for emojis
+            
+            # Store for click handling
+            if not hasattr(self, 'main_menu_button_rects'):
+                self.main_menu_button_rects = {}
+            self.main_menu_button_rects[i] = button_rect
+            
+            is_hovered = button_rect.collidepoint(mouse_pos)
+            if is_hovered:
+                self.menu_selection = i
+            
+            if i == self.menu_selection:
+                button_color = (85, 107, 47, 200)  # Selected
+                text_color = (255, 255, 255)
+                border_color = (144, 238, 144)
+                
+                # Glow effect
+                glow_surface = pygame.Surface((button_rect.width + 10, button_rect.height + 10), pygame.SRCALPHA)
+                pygame.draw.rect(glow_surface, (144, 238, 144, 60), (0, 0, button_rect.width + 10, button_rect.height + 10), border_radius=8)
+                self.screen.blit(glow_surface, (button_rect.x - 5, button_rect.y - 5))
+            else:
+                button_color = (40, 50, 35, 150)  # Normal
+                text_color = (220, 220, 220)
+                border_color = (100, 120, 90)
+            
+            # Draw button
+            button_surface = pygame.Surface((button_rect.width, button_rect.height), pygame.SRCALPHA)
+            button_surface.fill(button_color)
+            self.screen.blit(button_surface, button_rect)
+            pygame.draw.rect(self.screen, border_color, button_rect, 2, border_radius=8)
+            
+            # Draw text with emoji icon
+            emoji = get_menu_icon(option)
+            menu_text = f"{emoji}  {option}"
+            text = self.menu_font.render(menu_text, True, text_color)
+            text_rect = text.get_rect(center=button_rect.center)
+            self.screen.blit(text, text_rect)
+            
+            # Selection indicator
+            if i == self.menu_selection:
+                indicator_color = (218, 165, 32)  # Goldenrod arrow
+                pygame.draw.polygon(self.screen, indicator_color, [
+                    (button_rect.right - 25, button_rect.centery - 8),
+                    (button_rect.right - 15, button_rect.centery),
+                    (button_rect.right - 25, button_rect.centery + 8)
+                ])
+        
+        # Store positions for mouse click handling
+        self.menu_buttons_start_y = buttons_start_y
+        self.menu_button_spacing = button_spacing
+    
+    def draw_menu_legacy(self):
+        """Legacy main menu rendering (fallback)"""
+        # Warm gradient background
+        self.draw_warm_gradient_background()
+        
+        # Subtle decorative elements
+        self.draw_menu_decorations()
+        
+        # Calculate vertical centering - total menu height and center it
+        total_menu_items = len(self.menu_options)
+        button_spacing = max(45, min(50, (SCREEN_HEIGHT - 300) // total_menu_items))  # Adaptive spacing
+        menu_height = 80 + 40 + (total_menu_items * button_spacing) + 40  # title + subtitle + buttons + padding
+        start_y = max(50, (SCREEN_HEIGHT - menu_height) // 2)  # Don't start too high
+        
+        # Title with shadow for depth - properly centered
+        title_y = start_y + 40
+        shadow_title = self.menu_title_font.render("FIELD STATION", True, (20, 25, 15))
+        shadow_rect = shadow_title.get_rect(center=(SCREEN_WIDTH // 2 + 2, title_y + 2))
+        self.screen.blit(shadow_title, shadow_rect)
+        
+        title = self.menu_title_font.render("FIELD STATION", True, (144, 238, 144))  # Light green - more pleasant
+        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, title_y))
         self.screen.blit(title, title_rect)
         
-        subtitle = self.ui_font.render("Scientific Field Research Simulation", True, LIGHT_GREEN)
-        subtitle_rect = subtitle.get_rect(center=(SCREEN_WIDTH // 2, 210))
+        # Fun and engaging subtitle
+        subtitle_y = title_y + 60
+        subtitle = self.ui_font.render("Grow, Learn, Discover - Scientific Agriculture Awaits!", True, (218, 165, 32))  # Goldenrod
+        subtitle_rect = subtitle.get_rect(center=(SCREEN_WIDTH // 2, subtitle_y))
         self.screen.blit(subtitle, subtitle_rect)
         
-        # Menu options
-        mouse_pos = pygame.mouse.get_pos()
-        self.draw_menu_options(self.menu_options)
+        # Store the calculated start position for buttons and spacing
+        self.menu_buttons_start_y = subtitle_y + 50
+        self.menu_button_spacing = button_spacing
+        
+        # Menu options with improved styling
+        self.draw_professional_menu_options(self.menu_options)
+        
+        # Version info in corner
+        version = self.small_font.render("v0.1", True, (180, 180, 180))  # Light gray
+        self.screen.blit(version, (SCREEN_WIDTH - 50, SCREEN_HEIGHT - 30))
     
     def draw_pause_menu(self):
-        """Draw the pause menu with semi-transparent background"""
-        # Semi-transparent overlay
+        """Draw the pause menu with professional styling"""
+        # Warm semi-transparent overlay
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-        overlay.set_alpha(128)
-        overlay.fill(BLACK)
+        overlay.set_alpha(180)
+        overlay.fill((40, 30, 25))  # Warm dark brown
         self.screen.blit(overlay, (0, 0))
         
-        # Title
-        title = self.menu_font.render("GAME PAUSED", True, WHITE)
-        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 200))
+        # Calculate vertical centering
+        total_menu_items = len(self.pause_menu_options)
+        menu_height = 80 + (total_menu_items * 50) + 40  # title + buttons + padding
+        start_y = (SCREEN_HEIGHT - menu_height) // 2
+        
+        # Title with warm styling
+        title_y = start_y + 40
+        title = self.menu_title_font.render("GAME PAUSED", True, (180, 140, 100))
+        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, title_y))
         self.screen.blit(title, title_rect)
         
-        # Menu options
-        mouse_pos = pygame.mouse.get_pos()
-        self.draw_menu_options(self.pause_menu_options)
+        # Store button start position
+        self.pause_menu_buttons_start_y = title_y + 80
+        
+        # Menu options with professional styling
+        self.draw_professional_pause_menu_options(self.pause_menu_options)
     
     def draw_menu_options(self, options):
         """Draw menu options (shared between main menu and pause menu)"""
@@ -1657,16 +1938,486 @@ class FieldStation:
         inst_rect = instructions.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 50))
         self.screen.blit(instructions, inst_rect)
     
-    def draw_farm_setup(self):
-        """Draw the farm setup screen"""
-        # Title
-        title = self.menu_title_font.render("NEW FARM SETUP", True, GREEN)
-        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 120))
-        self.screen.blit(title, title_rect)
+    def draw_warm_gradient_background(self):
+        """Draw a pleasant, warm gradient background for the menu"""
+        # Get actual screen dimensions
+        actual_width = self.screen.get_width()
+        actual_height = self.screen.get_height()
         
-        # Subtitle
-        subtitle = self.ui_font.render("Create your personalized field research experience", True, LIGHT_GREEN)
-        subtitle_rect = subtitle.get_rect(center=(SCREEN_WIDTH // 2, 180))
+        for y in range(actual_height):
+            ratio = y / actual_height
+            # Pleasant earth tones: from warm forest green to soft golden brown
+            r = int(60 * (1 - ratio) + 140 * ratio)
+            g = int(80 * (1 - ratio) + 120 * ratio)
+            b = int(45 * (1 - ratio) + 70 * ratio)
+            pygame.draw.line(self.screen, (r, g, b), (0, y), (actual_width, y))
+    
+    def draw_menu_decorations(self):
+        """Draw subtle decorative elements"""
+        # No decorations - keep it clean
+        pass
+    
+    def get_menu_emoji(self, option):
+        """Get icon symbol for menu option from local file"""
+        return get_menu_icon(option)
+    
+    def draw_professional_menu_options(self, options):
+        """Draw menu options with professional styling and emoji icons on hover"""
+        mouse_pos = pygame.mouse.get_pos()
+        
+        for i, option in enumerate(options):
+            # Check if mouse is hovering over this item
+            item_rect = self.get_menu_item_rect(i)
+            is_hovered = item_rect.collidepoint(mouse_pos)
+            if is_hovered:
+                self.menu_selection = i
+            
+            # Professional button styling - use calculated center position with adaptive spacing
+            spacing = getattr(self, 'menu_button_spacing', 50)
+            button_y = getattr(self, 'menu_buttons_start_y', SCREEN_HEIGHT // 2) + i * spacing
+            button_rect = pygame.Rect(SCREEN_WIDTH // 2 - 200, button_y, 400, 45)
+            
+            if i == self.menu_selection:
+                # Selected state - pleasant, readable colors
+                button_color = (85, 107, 47, 180)  # Olive green
+                text_color = (255, 255, 255)
+                border_color = (144, 238, 144)  # Light green
+                emoji_color = (218, 165, 32)  # Goldenrod emoji
+                
+                # Soft glow effect
+                glow_surface = pygame.Surface((button_rect.width + 20, button_rect.height + 20), pygame.SRCALPHA)
+                pygame.draw.rect(glow_surface, (144, 238, 144, 40), (0, 0, button_rect.width + 20, button_rect.height + 20), border_radius=8)
+                self.screen.blit(glow_surface, (button_rect.x - 10, button_rect.y - 10))
+            else:
+                # Normal state - subtle background
+                button_color = (60, 70, 50, 120)  # Dark olive
+                text_color = (220, 220, 220)  # Light gray
+                border_color = (120, 140, 100)  # Muted green
+                emoji_color = (180, 180, 180)  # Light gray emoji
+            
+            # Draw button background with rounded corners effect
+            button_surface = pygame.Surface((button_rect.width, button_rect.height), pygame.SRCALPHA)
+            button_surface.fill(button_color)
+            self.screen.blit(button_surface, button_rect)
+            
+            # Draw elegant border
+            pygame.draw.rect(self.screen, border_color, button_rect, 2, border_radius=6)
+            
+            # Get icon for this option
+            icon = self.get_menu_emoji(option)
+            
+            # Draw emoji icon on the left (only when hovered or selected)
+            if i == self.menu_selection:
+                # Use emoji font if available, otherwise fallback
+                if self.emoji_font:
+                    emoji_text = self.emoji_font.render(icon, True, emoji_color)
+                    # Scale emoji to be slightly smaller than text height with smooth scaling
+                    text_height = self.menu_font.get_height()
+                    target_height = int(text_height * 0.8)  # 80% of text height - a bit smaller
+                    target_size = (target_height, target_height)  # Square emoji
+                    # Use smoothscale for better quality when scaling down
+                    emoji_text = pygame.transform.smoothscale(emoji_text, target_size)
+                else:
+                    emoji_text = self.menu_font.render(icon, True, emoji_color)
+                
+                # Center the emoji with more space from the text
+                emoji_rect = emoji_text.get_rect(center=(button_rect.x + 25, button_rect.centery))
+                self.screen.blit(emoji_text, emoji_rect)
+                text_x_offset = 50  # More space between icon and text
+            else:
+                text_x_offset = 0
+            
+            # Draw option text (centered or offset for emoji)
+            text = self.menu_font.render(option, True, text_color)
+            if text_x_offset > 0:
+                text_rect = text.get_rect(midleft=(button_rect.x + text_x_offset, button_rect.centery))
+            else:
+                text_rect = text.get_rect(center=button_rect.center)
+            self.screen.blit(text, text_rect)
+            
+            # Add subtle selection indicator (arrow on right)
+            if i == self.menu_selection:
+                indicator_color = (218, 165, 32)  # Goldenrod arrow
+                pygame.draw.polygon(self.screen, indicator_color, [
+                    (button_rect.right - 25, button_rect.centery - 6),
+                    (button_rect.right - 15, button_rect.centery),
+                    (button_rect.right - 25, button_rect.centery + 6)
+                ])
+    
+    def draw_professional_pause_menu_options(self, options):
+        """Draw pause menu options with professional styling and emoji icons"""
+        mouse_pos = pygame.mouse.get_pos()
+        
+        for i, option in enumerate(options):
+            # Check if mouse is hovering over this item
+            button_y = getattr(self, 'pause_menu_buttons_start_y', SCREEN_HEIGHT // 2) + i * 50
+            button_rect = pygame.Rect(SCREEN_WIDTH // 2 - 200, button_y, 400, 45)
+            
+            is_hovered = button_rect.collidepoint(mouse_pos)
+            if is_hovered:
+                self.menu_selection = i
+            
+            if i == self.menu_selection:
+                # Selected state - pleasant, readable colors
+                button_color = (85, 107, 47, 180)  # Olive green
+                text_color = (255, 255, 255)
+                border_color = (144, 238, 144)  # Light green
+                emoji_color = (218, 165, 32)  # Goldenrod emoji
+                
+                # Soft glow effect
+                glow_surface = pygame.Surface((button_rect.width + 20, button_rect.height + 20), pygame.SRCALPHA)
+                pygame.draw.rect(glow_surface, (144, 238, 144, 40), (0, 0, button_rect.width + 20, button_rect.height + 20), border_radius=8)
+                self.screen.blit(glow_surface, (button_rect.x - 10, button_rect.y - 10))
+            else:
+                # Normal state - subtle background
+                button_color = (60, 70, 50, 120)  # Dark olive
+                text_color = (220, 220, 220)  # Light gray
+                border_color = (120, 140, 100)  # Muted green
+                emoji_color = (180, 180, 180)  # Light gray emoji
+            
+            # Draw button background
+            button_surface = pygame.Surface((button_rect.width, button_rect.height), pygame.SRCALPHA)
+            button_surface.fill(button_color)
+            self.screen.blit(button_surface, button_rect)
+            
+            # Draw elegant border
+            pygame.draw.rect(self.screen, border_color, button_rect, 2, border_radius=6)
+            
+            # Draw text with emoji icon
+            emoji = get_menu_icon(option)
+            menu_text = f"{emoji}  {option}"
+            text = self.menu_font.render(menu_text, True, text_color)
+            text_rect = text.get_rect(center=button_rect.center)
+            self.screen.blit(text, text_rect)
+            
+            # Add subtle selection indicator (arrow on right)
+            if i == self.menu_selection:
+                indicator_color = (218, 165, 32)  # Goldenrod arrow
+                pygame.draw.polygon(self.screen, indicator_color, [
+                    (button_rect.right - 25, button_rect.centery - 6),
+                    (button_rect.right - 15, button_rect.centery),
+                    (button_rect.right - 25, button_rect.centery + 6)
+                ])
+    
+    def get_menu_option_icon(self, option):
+        """Get simple ASCII icon for menu option that will definitely work"""
+        icons = {
+            "Continue Game": ">",
+            "Save Game": "S", 
+            "New Game": "+",
+            "Load Game": "L",
+            "Tutorials": "?",
+            "Achievements": "*",
+            "About": "i",
+            "Options": "=",
+            "Exit": "X"
+        }
+        return icons.get(option, "•")
+    
+    def draw_menu_icon(self, surface, icon_text, x, y, size=20, color=(200, 180, 160)):
+        """Render icon - with fallback ASCII art for reliability"""
+        # Define ASCII fallbacks for common emojis
+        ascii_fallbacks = {
+            "🏆": "[*]",  # Trophy
+            "❓": "[?]",  # Question mark
+            "ℹ️": "[i]",  # Info
+            "⚙️": "[=]",  # Gear/Settings
+            "⚙": "[=]",   # Gear without variation selector
+            "🌱": "[+]",  # Seedling/Plant
+            "⌨️": "[K]",  # Keyboard
+            "⌨": "[K]",   # Keyboard without variation selector
+            "★": "*",    # Star
+            "☆": "o",    # Empty star
+        }
+        
+        # Strip variation selectors that might cause issues
+        icon_text_clean = icon_text.replace('\ufe0f', '').replace('\ufe0e', '')
+        
+        # Get fallback text if emoji isn't supported
+        fallback_text = ascii_fallbacks.get(icon_text, ascii_fallbacks.get(icon_text_clean, icon_text))
+        
+        try:
+            # Try to render as emoji first if we have emoji font
+            if self.emoji_font and (icon_text in ascii_fallbacks or icon_text_clean in ascii_fallbacks):
+                try:
+                    emoji_render = self.emoji_font.render(icon_text, True, color)
+                    # Scale to target size
+                    target_size = (size, size)
+                    emoji_scaled = pygame.transform.smoothscale(emoji_render, target_size)
+                    emoji_rect = emoji_scaled.get_rect(center=(x, y))
+                    surface.blit(emoji_scaled, emoji_rect)
+                    return  # Success!
+                except:
+                    pass  # Fall through to ASCII fallback
+            
+            # Use ASCII fallback with nice styling
+            fallback_font = pygame.font.Font(None, int(size * 0.8))
+            fallback_render = fallback_font.render(fallback_text, True, color)
+            fallback_rect = fallback_render.get_rect(center=(x, y))
+            surface.blit(fallback_render, fallback_rect)
+            
+        except Exception as e:
+            # Last resort - bullet point
+            fallback_font = pygame.font.Font(None, size)
+            fallback_render = fallback_font.render("•", True, color)
+            fallback_rect = fallback_render.get_rect(center=(x, y))
+            surface.blit(fallback_render, fallback_rect)
+    
+    def draw_text_in_panel(self, panel_rect, content_lines, title_height=120, line_height=22, margin=40):
+        """
+        Reusable method to draw text content within panel boundaries with proper wrapping and scrolling.
+        
+        Args:
+            panel_rect: pygame.Rect for the panel
+            content_lines: List of dictionaries with 'text', 'color', 'font' keys
+            title_height: Height from panel top to start content
+            line_height: Spacing between lines
+            margin: Left/right margin from panel edges
+        """
+        # Calculate available content area
+        content_area = pygame.Rect(
+            panel_rect.x + margin, 
+            panel_rect.y + title_height,
+            panel_rect.width - (margin * 2),
+            panel_rect.height - title_height - 60  # Leave space for instructions at bottom
+        )
+        
+        current_y = content_area.y
+        visible_lines = []
+        
+        for line_data in content_lines:
+            if isinstance(line_data, str):
+                # Convert simple string to dict format for backward compatibility
+                line_data = {
+                    'text': line_data,
+                    'color': (255, 255, 255),
+                    'font': self.font
+                }
+            
+            text = line_data.get('text', '')
+            color = line_data.get('color', (255, 255, 255))
+            font = line_data.get('font', self.font)
+            
+            # Handle empty lines
+            if text.strip() == "":
+                current_y += line_height // 2
+                continue
+            
+            # Word wrap long text
+            words = text.split(' ')
+            lines = []
+            current_line = []
+            
+            for word in words:
+                test_line = ' '.join(current_line + [word])
+                text_width = font.size(test_line)[0]
+                
+                if text_width <= content_area.width:
+                    current_line.append(word)
+                else:
+                    if current_line:
+                        lines.append(' '.join(current_line))
+                        current_line = [word]
+                    else:
+                        # Single word is too long, force it
+                        lines.append(word)
+            
+            if current_line:
+                lines.append(' '.join(current_line))
+            
+            # Add wrapped lines to visible list if they fit in content area
+            for wrapped_line in lines:
+                if current_y + line_height <= content_area.bottom:
+                    visible_lines.append({
+                        'text': wrapped_line,
+                        'color': color,
+                        'font': font,
+                        'y': current_y
+                    })
+                    current_y += line_height
+                else:
+                    break
+        
+        # Render visible lines
+        for line in visible_lines:
+            rendered_text = line['font'].render(line['text'], True, line['color'])
+            self.screen.blit(rendered_text, (content_area.x, line['y']))
+        
+        # Show scroll indicator if content was cut off
+        if current_y > content_area.bottom:
+            scroll_text = self.small_font.render("(Content continues...)", True, (120, 120, 120))
+            self.screen.blit(scroll_text, (content_area.right - scroll_text.get_width(), content_area.bottom - 20))
+    
+    def wrap_text(self, text, font, max_width):
+        """
+        Helper method to wrap text to fit within a specified width.
+        Returns a list of text lines.
+        """
+        words = text.split(' ')
+        lines = []
+        current_line = []
+        
+        for word in words:
+            test_line = ' '.join(current_line + [word])
+            text_width = font.size(test_line)[0]
+            
+            if text_width <= max_width:
+                current_line.append(word)
+            else:
+                if current_line:
+                    lines.append(' '.join(current_line))
+                    current_line = [word]
+                else:
+                    # Single word is too long, force it
+                    lines.append(word)
+        
+        if current_line:
+            lines.append(' '.join(current_line))
+        
+        return lines
+    
+    def draw_title_with_emoji(self, emoji, title_text, x, y, title_color=(144, 238, 144), shadow_color=(20, 25, 15)):
+        """
+        Properly render a title with emoji icon using the correct font systems.
+        Separates emoji rendering (using emoji font) from text rendering (using title font).
+        """
+        # Calculate emoji size based on title font height
+        title_height = self.menu_title_font.get_height()
+        emoji_size = int(title_height * 0.9)  # 90% of title height for better visibility
+        
+        # Measure text width to properly position emoji
+        title_surface = self.menu_title_font.render(title_text, True, title_color)
+        title_width = title_surface.get_width()
+        
+        # Calculate positions - emoji on left, then text
+        total_width = emoji_size + 20 + title_width  # emoji + spacing + text
+        start_x = x - total_width // 2
+        emoji_x = start_x + emoji_size // 2
+        text_x = start_x + emoji_size + 20 + title_width // 2
+        
+        # Draw shadows first
+        if emoji:
+            self.draw_menu_icon(self.screen, emoji, emoji_x + 2, y + 2, emoji_size, shadow_color)
+        
+        shadow_title = self.menu_title_font.render(title_text, True, shadow_color)
+        shadow_rect = shadow_title.get_rect(center=(text_x + 2, y + 2))
+        self.screen.blit(shadow_title, shadow_rect)
+        
+        # Draw main emoji and text
+        if emoji:
+            self.draw_menu_icon(self.screen, emoji, emoji_x, y, emoji_size, (218, 165, 32))  # Goldenrod emoji
+        
+        title_rect = title_surface.get_rect(center=(text_x, y))
+        self.screen.blit(title_surface, title_rect)
+    
+    def draw_farm_setup(self):
+        """Draw the farm setup screen using UI framework with interactive forms"""
+        if UI_FRAMEWORK_AVAILABLE:
+            return self.draw_farm_setup_framework()
+        else:
+            return self.draw_farm_setup_legacy()
+    
+    def draw_farm_setup_framework(self):
+        """Draw farm setup using the new generic page framework"""
+        from ui_framework import UIManager, GenericPagePanel
+        
+        # Draw gradient background
+        ui = UIManager(self.screen)
+        ui.draw_warm_gradient_background()
+        
+        # Create or update the farm setup panel
+        if not hasattr(self, 'farm_setup_panel'):
+            self.farm_setup_panel = GenericPagePanel(
+                "+ NEW FARM SETUP",
+                "Create your personalized plant growing experience",
+                width=800,
+                height=650
+            )
+            self.farm_setup_panel.set_fonts(
+                self.menu_title_font,
+                self.ui_font,
+                self.font,
+                self.menu_font
+            )
+        
+        # Clear and rebuild content
+        self.farm_setup_panel.content_elements = []
+        self.farm_setup_panel.input_fields = []
+        self.farm_setup_panel.buttons = []
+        
+        # Update input field states with current game values
+        def update_input_field_in_content(field_id, value, active):
+            for elem in self.farm_setup_panel.content_elements:
+                if elem[0] == 'input_field' and elem[1]['id'] == field_id:
+                    elem[1]['value'] = value
+                    elem[1]['active'] = active
+                    break
+        
+        # Add farm name input first
+        self.farm_setup_panel.add_input_field(
+            "Farm Name:",
+            "farm_name",
+            self.farm_name,
+            self.setup_name_input_active,
+            "Enter your farm name..."
+        )
+        self.farm_setup_panel.add_spacer(25)  # Increased spacing
+        
+        # Add location options
+        location_options = []
+        for i, loc in enumerate(self.available_locations):
+            prefix = "> " if i == self.setup_location_selection else "  "
+            location_options.append(prefix + loc)
+        
+        self.farm_setup_panel.add_option_list(
+            "Location:",
+            location_options,
+            self.setup_location_selection,
+            "location"
+        )
+        self.farm_setup_panel.add_spacer(30)  # Increased spacing
+        
+        # Add season options
+        season_options = []
+        for i, (season_name, season_desc) in enumerate(self.available_seasons):
+            prefix = "> " if i == self.setup_season_selection else "  "
+            season_options.append(f"{prefix}{season_name} - {season_desc}")
+        
+        self.farm_setup_panel.add_option_list(
+            "Starting Season:",
+            season_options,
+            self.setup_season_selection,
+            "season"
+        )
+        self.farm_setup_panel.add_spacer(50)  # Increased spacing before buttons
+        
+        # Add buttons
+        can_start = bool(self.farm_name.strip()) and self.setup_season_selection >= 0
+        self.farm_setup_panel.add_button("START FARM", "start", enabled=can_start)
+        self.farm_setup_panel.add_button("BACK", "back", enabled=True)
+        
+        # Render the panel
+        ui.add_element(self.farm_setup_panel)
+        ui.render()
+    
+    def handle_farm_setup_panel_state(self):
+        """Handle panel state updates for farm setup"""
+        # This will be called to sync the panel state with game state
+        pass
+    
+    
+    def draw_farm_setup_legacy(self):
+        """Legacy farm setup screen rendering (fallback)"""
+        # Warm gradient background
+        self.draw_warm_gradient_background()
+        
+        # Title with proper emoji rendering
+        title_y = 100
+        self.draw_title_with_emoji("🌱", "NEW FARM SETUP", SCREEN_WIDTH // 2, title_y)
+        
+        # Subtitle with better colors
+        subtitle = self.ui_font.render("Create your personalized plant growing experience", True, (218, 165, 32))  # Goldenrod
+        subtitle_rect = subtitle.get_rect(center=(SCREEN_WIDTH // 2, 140))
         self.screen.blit(subtitle, subtitle_rect)
         
         # Farm name section
@@ -1674,14 +2425,14 @@ class FieldStation:
         name_label_rect = name_label.get_rect(center=(SCREEN_WIDTH // 2, 250))
         self.screen.blit(name_label, name_label_rect)
         
-        # Name input field
+        # Name input field with improved styling
         name_rect = pygame.Rect(SCREEN_WIDTH // 2 - 200, 300, 400, 40)
         if self.setup_name_input_active:
-            pygame.draw.rect(self.screen, (60, 60, 60), name_rect)
-            pygame.draw.rect(self.screen, YELLOW, name_rect, 3)
+            pygame.draw.rect(self.screen, (85, 107, 47), name_rect, border_radius=6)  # Olive green
+            pygame.draw.rect(self.screen, (144, 238, 144), name_rect, 3, border_radius=6)  # Light green border
         else:
-            pygame.draw.rect(self.screen, (40, 40, 40), name_rect)
-            pygame.draw.rect(self.screen, GRAY, name_rect, 2)
+            pygame.draw.rect(self.screen, (60, 70, 50), name_rect, border_radius=6)  # Dark olive
+            pygame.draw.rect(self.screen, (120, 140, 100), name_rect, 2, border_radius=6)  # Muted green border
         
         # Farm name text with cursor
         name_display = self.farm_name
@@ -1694,7 +2445,7 @@ class FieldStation:
             self.screen.blit(name_text, name_text_rect)
         else:
             # Placeholder text
-            placeholder = self.font.render("Enter your farm name...", True, GRAY)
+            placeholder = self.font.render("Enter your farm name...", True, (180, 180, 180))  # Light gray
             placeholder_rect = placeholder.get_rect(left=name_rect.left + 10, centery=name_rect.centery)
             self.screen.blit(placeholder, placeholder_rect)
         
@@ -1709,15 +2460,15 @@ class FieldStation:
             location_rect = pygame.Rect(SCREEN_WIDTH // 2 - 300, y_pos, 600, 35)
             
             if i == self.setup_location_selection and not self.setup_name_input_active and self.setup_season_selection == -1:
-                pygame.draw.rect(self.screen, (60, 60, 60), location_rect)
-                pygame.draw.rect(self.screen, YELLOW, location_rect, 3)
-                prefix = "> "
-                color = YELLOW
-            else:
-                pygame.draw.rect(self.screen, (30, 30, 30), location_rect)
-                pygame.draw.rect(self.screen, GRAY, location_rect, 1)
-                prefix = "  "
+                pygame.draw.rect(self.screen, (85, 107, 47), location_rect, border_radius=6)  # Olive green
+                pygame.draw.rect(self.screen, (144, 238, 144), location_rect, 3, border_radius=6)  # Light green border
+                prefix = "📍 "
                 color = WHITE
+            else:
+                pygame.draw.rect(self.screen, (60, 70, 50), location_rect, border_radius=6)  # Dark olive
+                pygame.draw.rect(self.screen, (120, 140, 100), location_rect, 1, border_radius=6)  # Muted green border
+                prefix = "   "
+                color = (220, 220, 220)  # Light gray
             
             location_text = self.font.render(prefix + location, True, color)
             location_text_rect = location_text.get_rect(left=location_rect.left + 10, centery=location_rect.centery)
@@ -1734,50 +2485,60 @@ class FieldStation:
             season_rect = pygame.Rect(SCREEN_WIDTH // 2 - 300, y_pos, 600, 35)
             
             if i == self.setup_season_selection and not self.setup_name_input_active and self.setup_season_selection >= 0:
-                pygame.draw.rect(self.screen, (60, 60, 60), season_rect)
-                pygame.draw.rect(self.screen, GREEN, season_rect, 3)
-                prefix = "> "
-                color = GREEN
-            else:
-                pygame.draw.rect(self.screen, (30, 30, 30), season_rect)
-                pygame.draw.rect(self.screen, GRAY, season_rect, 1)
-                prefix = "  "
+                pygame.draw.rect(self.screen, (85, 107, 47), season_rect, border_radius=6)  # Olive green
+                pygame.draw.rect(self.screen, (144, 238, 144), season_rect, 3, border_radius=6)  # Light green border
+                # Add season emojis
+                season_emojis = ["🌸", "☀️", "🍂", "❄️"]
+                prefix = f"{season_emojis[i]} " if i < len(season_emojis) else "🌱 "
                 color = WHITE
+            else:
+                pygame.draw.rect(self.screen, (60, 70, 50), season_rect, border_radius=6)  # Dark olive
+                pygame.draw.rect(self.screen, (120, 140, 100), season_rect, 1, border_radius=6)  # Muted green border
+                prefix = "   "
+                color = (220, 220, 220)  # Light gray
             
             season_text = self.font.render(f"{prefix}{season_name} - {season_desc}", True, color)
             season_text_rect = season_text.get_rect(left=season_rect.left + 10, centery=season_rect.centery)
             self.screen.blit(season_text, season_text_rect)
         
-        # Start Game button
-        start_button_rect = pygame.Rect(SCREEN_WIDTH // 2 - 100, 680, 200, 50)
+        # Start Game button with improved styling
+        start_button_rect = pygame.Rect(SCREEN_WIDTH // 2 - 120, 680, 240, 50)
         can_start = bool(self.farm_name.strip()) and self.setup_season_selection >= 0
         
         if can_start:
-            pygame.draw.rect(self.screen, (0, 100, 0), start_button_rect)
-            pygame.draw.rect(self.screen, GREEN, start_button_rect, 2)
+            # Active button - ready to start
+            pygame.draw.rect(self.screen, (85, 107, 47), start_button_rect, border_radius=8)  # Olive green
+            pygame.draw.rect(self.screen, (144, 238, 144), start_button_rect, 3, border_radius=8)  # Light green border
+            # Add glow effect for active button
+            glow_surface = pygame.Surface((start_button_rect.width + 20, start_button_rect.height + 20), pygame.SRCALPHA)
+            pygame.draw.rect(glow_surface, (144, 238, 144, 40), (0, 0, start_button_rect.width + 20, start_button_rect.height + 20), border_radius=12)
+            self.screen.blit(glow_surface, (start_button_rect.x - 10, start_button_rect.y - 10))
             button_color = WHITE
+            button_text = "🌱 START GAME"
         else:
-            pygame.draw.rect(self.screen, (50, 50, 50), start_button_rect)
-            pygame.draw.rect(self.screen, GRAY, start_button_rect, 2)
-            button_color = GRAY
+            # Disabled button - missing requirements
+            pygame.draw.rect(self.screen, (60, 70, 50), start_button_rect, border_radius=8)  # Dark olive
+            pygame.draw.rect(self.screen, (120, 140, 100), start_button_rect, 2, border_radius=8)  # Muted green border
+            button_color = (160, 160, 160)  # Light gray text
+            button_text = "START GAME"
         
-        start_text = self.menu_font.render("START GAME", True, button_color)
+        start_text = self.menu_font.render(button_text, True, button_color)
         start_text_rect = start_text.get_rect(center=start_button_rect.center)
         self.screen.blit(start_text, start_text_rect)
         
-        # Instructions
+        # Instructions with better colors
         if self.setup_name_input_active:
-            instructions = self.small_font.render("Type your farm name, then press ENTER/TAB to continue", True, LIGHT_GREEN)
+            instructions = self.small_font.render("Type your farm name, then press ENTER/TAB to continue", True, (218, 165, 32))  # Goldenrod
         elif self.setup_season_selection == -1:
-            instructions = self.small_font.render("Use arrow keys to select location, ENTER to continue to season selection", True, LIGHT_GREEN)
+            instructions = self.small_font.render("Use arrow keys to select location, ENTER to continue to season selection", True, (218, 165, 32))  # Goldenrod
         else:
-            instructions = self.small_font.render("Use arrow keys to select starting season, ENTER to start game", True, LIGHT_GREEN)
+            instructions = self.small_font.render("Use arrow keys to select starting season, ENTER to start game", True, (218, 165, 32))  # Goldenrod
         
         inst_rect = instructions.get_rect(center=(SCREEN_WIDTH // 2, 750))
         self.screen.blit(instructions, inst_rect)
         
         # Back instruction
-        back_text = self.small_font.render("ESC - Back to Main Menu", True, GRAY)
+        back_text = self.small_font.render("ESC - Back to Main Menu", True, (180, 180, 180))  # Light gray
         back_rect = back_text.get_rect(center=(SCREEN_WIDTH // 2, 770))
         self.screen.blit(back_text, back_rect)
     
@@ -1796,50 +2557,180 @@ class FieldStation:
         self.screen.blit(back, back_rect)
     
     def draw_options_screen(self):
-        """Draw the options menu"""
-        title = self.menu_title_font.render("OPTIONS", True, GREEN)
-        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 150))
-        self.screen.blit(title, title_rect)
+        """Draw the options menu using UI framework for text, legacy for buttons"""
+        if UI_FRAMEWORK_AVAILABLE:
+            return self.draw_options_screen_framework()
+        else:
+            return self.draw_options_screen_legacy()
+    
+    def draw_options_screen_framework(self):
+        """Draw settings page using the new generic page framework"""
+        from ui_framework import UIManager, GenericPagePanel
         
-        # Options items
+        # Draw gradient background
+        ui = UIManager(self.screen)
+        ui.draw_warm_gradient_background()
+        
+        # Create or update the options panel
+        if not hasattr(self, 'options_panel'):
+            self.options_panel = GenericPagePanel(
+                "@ SETTINGS",
+                "Configure game options and controls",
+                width=600,
+                height=500
+            )
+            self.options_panel.set_fonts(
+                self.menu_title_font,
+                self.ui_font,
+                self.font,
+                self.menu_font
+            )
+        
+        # Clear and rebuild content
+        self.options_panel.content_elements = []
+        self.options_panel.input_fields = []
+        self.options_panel.buttons = []
+        
+        # Add options buttons
+        for option_name, option_func in self.options_items:
+            self.options_panel.add_button(option_name, option_name.lower().replace(' ', '_'), enabled=True)
+        
+        # Render the panel
+        ui.add_element(self.options_panel)
+        ui.render()
+    
+    def draw_settings_buttons_overlay(self):
+        """Draw interactive settings buttons on top of framework panel"""
+        # Get actual screen dimensions
+        actual_width = self.screen.get_width()
+        actual_height = self.screen.get_height()
+        
+        # Calculate button positions
+        button_start_y = actual_height // 2 - 100
         mouse_pos = pygame.mouse.get_pos()
+        
         for i, (option_name, option_func) in enumerate(self.options_items):
-            y_pos = 300 + i * 80
+            button_y = button_start_y + i * 60
+            button_rect = pygame.Rect(actual_width // 2 - 150, button_y, 300, 45)
             
-            # Create clickable rectangle
-            option_rect = pygame.Rect(SCREEN_WIDTH // 2 - 300, y_pos - 30, 600, 60)
-            
-            # Mouse hover detection
-            if option_rect.collidepoint(mouse_pos):
+            is_hovered = button_rect.collidepoint(mouse_pos)
+            if is_hovered:
                 self.options_selection = i
             
-            # Highlight selected option
             if i == self.options_selection:
-                pygame.draw.rect(self.screen, (40, 40, 40), option_rect)
-                color = YELLOW
-                prefix = "> "
+                button_color = (85, 107, 47, 200)  # More opaque when selected
+                text_color = (255, 255, 255)
+                border_color = (144, 238, 144)
             else:
-                color = WHITE
-                prefix = "  "
+                button_color = (40, 50, 35, 150)  # Semi-transparent
+                text_color = (200, 200, 200)
+                border_color = (100, 120, 90)
+            
+            # Draw button
+            button_surface = pygame.Surface((button_rect.width, button_rect.height), pygame.SRCALPHA)
+            button_surface.fill(button_color)
+            self.screen.blit(button_surface, button_rect)
+            pygame.draw.rect(self.screen, border_color, button_rect, 2, border_radius=6)
+            
+            # Button text with status
+            if option_name == "Fullscreen":
+                status = "ON" if self.fullscreen else "OFF"
+                display_text = f"{option_name}: {status}"
+            elif option_name == "Monitor":
+                monitor_info = f"Monitor {self.current_display + 1}"
+                display_text = f"{option_name}: {monitor_info}"
+            elif option_name == "Sound Volume":
+                sound_status = "ON" if getattr(self, 'sound_enabled', True) else "OFF"
+                display_text = f"{option_name}: {sound_status}"
+            else:
+                display_text = option_name
+            
+            text = self.ui_font.render(display_text, True, text_color)
+            text_rect = text.get_rect(center=button_rect.center)
+            self.screen.blit(text, text_rect)
+            
+            # Store button positions for click handling
+            if not hasattr(self, 'options_button_rects'):
+                self.options_button_rects = {}
+            self.options_button_rects[i] = button_rect
+    
+    def draw_options_screen_legacy(self):
+        """Legacy options screen rendering (fallback)"""
+        # Warm gradient background
+        self.draw_warm_gradient_background()
+        
+        # Calculate vertical centering
+        total_options = len(self.options_items)
+        menu_height = 80 + (total_options * 50) + 40  # title + buttons + padding
+        start_y = (SCREEN_HEIGHT - menu_height) // 2
+        
+        # Title with proper emoji rendering
+        title_y = start_y + 40
+        self.draw_title_with_emoji("⚙️", "SETTINGS", SCREEN_WIDTH // 2, title_y)
+        
+        # Store button start position
+        self.options_buttons_start_y = title_y + 80
+        
+        # Options items with professional styling
+        mouse_pos = pygame.mouse.get_pos()
+        for i, (option_name, option_func) in enumerate(self.options_items):
+            button_y = self.options_buttons_start_y + i * 50
+            button_rect = pygame.Rect(SCREEN_WIDTH // 2 - 200, button_y, 400, 45)
+            
+            is_hovered = button_rect.collidepoint(mouse_pos)
+            if is_hovered:
+                self.options_selection = i
+            
+            if i == self.options_selection:
+                # Selected state - pleasant, readable colors
+                button_color = (85, 107, 47, 180)  # Olive green
+                text_color = (255, 255, 255)
+                border_color = (144, 238, 144)  # Light green
+                
+                # Soft glow effect
+                glow_surface = pygame.Surface((button_rect.width + 20, button_rect.height + 20), pygame.SRCALPHA)
+                pygame.draw.rect(glow_surface, (144, 238, 144, 40), (0, 0, button_rect.width + 20, button_rect.height + 20), border_radius=8)
+                self.screen.blit(glow_surface, (button_rect.x - 10, button_rect.y - 10))
+            else:
+                # Normal state - subtle background
+                button_color = (60, 70, 50, 120)  # Dark olive
+                text_color = (220, 220, 220)  # Light gray
+                border_color = (120, 140, 100)  # Muted green
+            
+            # Draw button background with rounded corners effect
+            button_surface = pygame.Surface((button_rect.width, button_rect.height), pygame.SRCALPHA)
+            button_surface.fill(button_color)
+            self.screen.blit(button_surface, button_rect)
+            
+            # Draw elegant border
+            pygame.draw.rect(self.screen, border_color, button_rect, 2, border_radius=6)
             
             # Special handling for options with status
             if option_name == "Fullscreen":
                 status = "ON" if self.fullscreen else "OFF"
-                display_text = f"{prefix}{option_name}: {status}"
+                display_text = f"{option_name}: {status}"
             elif option_name == "Monitor":
-                current_monitor = self.available_displays[self.current_display] if self.current_display < len(self.available_displays) else "Unknown"
-                display_text = f"{prefix}{option_name}: {current_monitor}"
+                monitor_info = f"Monitor {self.current_display + 1}"
+                display_text = f"{option_name}: {monitor_info}"
+            elif option_name == "Sound Volume":
+                sound_status = "ON" if getattr(self, 'sound_enabled', True) else "OFF"
+                display_text = f"{option_name}: {sound_status}"
             else:
-                display_text = f"{prefix}{option_name}"
+                display_text = option_name
             
-            text = self.menu_font.render(display_text, True, color)
-            text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, y_pos))
+            # Draw text
+            text = self.menu_font.render(display_text, True, text_color)
+            text_rect = text.get_rect(center=button_rect.center)
             self.screen.blit(text, text_rect)
-        
-        # Instructions
-        instructions = self.font.render("Use arrow keys or mouse to select, ENTER or click to activate", True, GRAY)
-        inst_rect = instructions.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100))
-        self.screen.blit(instructions, inst_rect)
+            
+            # Add subtle selection indicator (arrow on right)
+            if i == self.options_selection:
+                indicator_color = (218, 165, 32)  # Goldenrod arrow
+                pygame.draw.polygon(self.screen, indicator_color, [
+                    (button_rect.right - 25, button_rect.centery - 6),
+                    (button_rect.right - 15, button_rect.centery),
+                    (button_rect.right - 25, button_rect.centery + 6)
+                ])
     
     def toggle_fullscreen(self):
         """Toggle between fullscreen and windowed mode"""
@@ -1893,6 +2784,8 @@ class FieldStation:
             except:
                 pass
         
+        global SCREEN_WIDTH, SCREEN_HEIGHT
+        
         if self.fullscreen:
             # Use borderless fullscreen instead of exclusive fullscreen
             self.screen = pygame.display.set_mode((0, 0), pygame.NOFRAME)
@@ -1904,9 +2797,9 @@ class FieldStation:
     def update_menu_options(self):
         """Update main menu options based on game state"""
         if self.game_in_progress:
-            self.menu_options = ["Continue Game", "Save Game", "New Game", "Load Game", "Tutorials", "Achievements", "Options", "Exit"]
+            self.menu_options = ["Continue Game", "New Game", "Load Game", "Save Game", "Achievements", "Help", "Settings", "About", "Exit"]
         else:
-            self.menu_options = ["New Game", "Load Game", "Tutorials", "Achievements", "Options", "Exit"]
+            self.menu_options = ["New Game", "Load Game", "Achievements", "Help", "Settings", "About", "Exit"]
     
     def update_pause_menu_options(self):
         """Update pause menu options"""
@@ -1923,13 +2816,13 @@ class FieldStation:
             self.options_items.append(("Monitor", lambda: self.cycle_display()))
         
         self.options_items.extend([
-            ("Interface", lambda: self.show_interface_controls()),
-            ("Help", lambda: self.show_help()),
+            ("Sound Volume", lambda: self.toggle_sound()),
+            ("Interface Help", lambda: self.show_interface_controls()),
         ])
         
         # Add appropriate back option based on where we came from
-        if self.previous_game_state == GameState.GAME:
-            self.options_items.append(("Back to Game", lambda: self.return_to_game()))
+        if self.previous_game_state == GameState.PAUSE_MENU:
+            self.options_items.append(("Back to Game", lambda: self.return_to_pause_menu()))
         else:
             self.options_items.append(("Back to Menu", lambda: self.return_to_menu()))
     
@@ -1940,100 +2833,212 @@ class FieldStation:
     
     def show_interface_controls(self):
         """Show the interface controls screen"""
-        self.game_state = GameState.TUTORIALS  # Reuse tutorials state for interface screen
+        self.game_state = GameState.TUTORIALS  # Use existing TUTORIALS state
     
     def show_help(self):
         """Show the help screen"""
         self.game_state = GameState.HELP
     
     def draw_interface_controls(self):
-        """Draw the interface controls screen"""
-        title = self.menu_title_font.render("INTERFACE CONTROLS", True, GREEN)
-        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 100))
-        self.screen.blit(title, title_rect)
+        """Draw the interface controls screen using UI framework"""
+        if not UI_FRAMEWORK_AVAILABLE:
+            return self.draw_interface_controls_legacy()
         
-        # Draw controls list
-        y_start = 180
-        for i, control_line in enumerate(self.interface_controls):
-            if control_line == "":
-                continue  # Skip empty lines for spacing
-            
-            # Different colors for headers and controls
-            if control_line.endswith(":"):
-                color = YELLOW
-                font = self.ui_font
-            elif control_line.startswith("  "):
-                color = WHITE
-                font = self.font
-            else:
-                color = LIGHT_GREEN
-                font = self.ui_font
-            
-            text = font.render(control_line, True, color)
-            self.screen.blit(text, (100, y_start + i * 25))
+        def populate_content(content_area):
+            fonts = self.create_framework_fonts()
+            content_area.add_header("Mouse Controls:", fonts['ui']) \
+                .add_text("• Left Click - Plant crops, harvest, interact with tiles", fonts['content']) \
+                .add_text("• Right Click - Get information about tiles", fonts['content']) \
+                .add_text("• Mouse Wheel - Zoom in and out", fonts['content']) \
+                .add_text("• Drag - Pan the camera view", fonts['content']) \
+                .add_spacer() \
+                .add_header("Keyboard Controls:", fonts['ui']) \
+                .add_text("• Space - Pause/unpause the game", fonts['content']) \
+                .add_text("• ESC - Return to main menu", fonts['content']) \
+                .add_text("• F1 - Toggle debug information display", fonts['content']) \
+                .add_text("• Ctrl+S - Quick save game", fonts['content']) \
+                .add_text("• Ctrl+L - Quick load game", fonts['content']) \
+                .add_spacer() \
+                .add_header("Game Tips:", fonts['ui']) \
+                .add_text("• Time automatically advances when not paused", fonts['content']) \
+                .add_text("• Click empty tiles to plant crops", fonts['content']) \
+                .add_text("• Click ready crops to harvest them", fonts['content']) \
+                .add_text("• Use the UI panels for market and farm info", fonts['content']) \
+                .add_text("• Monitor soil quality and crop progress", fonts['content'])
         
-        # Instructions
-        instructions = self.font.render("Press ESC to return to Options menu", True, GRAY)
-        inst_rect = instructions.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 50))
-        self.screen.blit(instructions, inst_rect)
+        ui = self.create_framework_page("CONTROLS", "⌨️", populate_content)
+        if ui:
+            ui.render()
+            
+            # Instructions at bottom
+            instructions = self.font.render("Press ESC to return to Options menu", True, (140, 120, 100))
+            inst_rect = instructions.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 50))
+            self.screen.blit(instructions, inst_rect)
+    
+    def draw_about_screen(self):
+        """Draw the about screen using the framework"""
+        if UI_FRAMEWORK_AVAILABLE:
+            from ui_framework import UIManager, GenericPagePanel
+            
+            # Draw gradient background
+            ui = UIManager(self.screen)
+            ui.draw_warm_gradient_background()
+            
+            # Create about panel with more height for content
+            about_panel = GenericPagePanel(
+                "i ABOUT",
+                "Field Station - A Scientific Farming Simulator",
+                width=700,
+                height=600
+            )
+            about_panel.set_fonts(
+                self.menu_title_font,
+                self.ui_font,
+                self.font,
+                self.menu_font
+            )
+            
+            # Add about content
+            about_panel.add_text("Version 0.1", center=True)
+            about_panel.add_spacer()
+            about_panel.add_text("Field Station is an educational farming game that combines", center=True)
+            about_panel.add_text("real agricultural science with engaging gameplay.", center=True)
+            about_panel.add_spacer()
+            about_panel.add_header("Features:")
+            about_panel.add_text("• Realistic crop growth simulation")
+            about_panel.add_text("• Scientific data tracking")
+            about_panel.add_text("• Weather and seasonal effects")
+            about_panel.add_text("• Soil quality management")
+            about_panel.add_spacer()
+            about_panel.add_text("Created with Python and Pygame", (140, 120, 100), center=True)
+            about_panel.add_spacer()
+            about_panel.add_button("BACK", "back")
+            
+            # Store panel reference for event handling
+            self.about_panel = about_panel
+            
+            ui.add_element(about_panel)
+            ui.render()
+            return
+        
+        # Fallback to legacy
+        self.draw_about_screen_legacy()
+    
+    def draw_about_screen_legacy(self):
+        """Legacy about screen rendering"""
+        pass
+    
+    def draw_achievements_screen(self):
+        """Draw the achievements screen using the framework"""
+        if UI_FRAMEWORK_AVAILABLE:
+            from ui_framework import UIManager, GenericPagePanel
+            
+            # Draw gradient background
+            ui = UIManager(self.screen)
+            ui.draw_warm_gradient_background()
+            
+            # Create achievements panel
+            achievements_panel = GenericPagePanel(
+                "* ACHIEVEMENTS",
+                "Track your farming accomplishments",
+                width=700,
+                height=550
+            )
+            achievements_panel.set_fonts(
+                self.menu_title_font,
+                self.ui_font,
+                self.font,
+                self.menu_font
+            )
+            
+            # Add achievements content
+            achievements_panel.add_header("Unlocked Achievements:")
+            achievements_panel.add_text("🌱 First Seed - Plant your first crop")
+            achievements_panel.add_text("🌾 First Harvest - Harvest your first crop")
+            achievements_panel.add_spacer()
+            achievements_panel.add_header("Locked Achievements:")
+            achievements_panel.add_text("🏆 Master Farmer - Harvest 100 crops", (120, 120, 120))
+            achievements_panel.add_text("💰 Wealthy Farmer - Earn $10,000", (120, 120, 120))
+            achievements_panel.add_text("📅 Year One - Complete a full year", (120, 120, 120))
+            achievements_panel.add_spacer()
+            achievements_panel.add_button("BACK", "back")
+            
+            # Store panel reference for event handling
+            self.achievements_panel = achievements_panel
+            
+            ui.add_element(achievements_panel)
+            ui.render()
+            return
+        
+        # Fallback to legacy
+        self.draw_achievements_screen_legacy()
+    
+    def draw_achievements_screen_legacy(self):
+        """Legacy achievements screen rendering"""
+        pass
     
     def draw_help_screen(self):
-        """Draw the help screen"""
-        title = self.menu_title_font.render("HELP & TUTORIAL", True, GREEN)
-        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 80))
+        """Draw the help screen using the framework"""
+        if UI_FRAMEWORK_AVAILABLE:
+            from ui_framework import UIManager, GenericPagePanel
+            
+            # Draw gradient background
+            ui = UIManager(self.screen)
+            ui.draw_warm_gradient_background()
+            
+            # Create help panel
+            help_panel = GenericPagePanel(
+                "? HELP & TUTORIALS",
+                "Learn how to play Field Station",
+                width=700,
+                height=600
+            )
+            help_panel.set_fonts(
+                self.menu_title_font,
+                self.ui_font,
+                self.font,
+                self.menu_font
+            )
+            
+            # Add help content
+            help_panel.add_header("Controls:")
+            help_panel.add_text("• Mouse: Click tiles to interact")
+            help_panel.add_text("• Arrow Keys/WASD: Move camera")
+            help_panel.add_text("• Mouse Wheel: Zoom in/out")
+            help_panel.add_text("• Space: Pause/unpause")
+            help_panel.add_text("• P: Plant crop on selected tile")
+            help_panel.add_text("• H: Harvest crop on selected tile")
+            help_panel.add_text("• A: Toggle auto-harvest")
+            help_panel.add_spacer()
+            help_panel.add_header("Game Tips:")
+            help_panel.add_text("• Different crops grow best in different seasons")
+            help_panel.add_text("• Monitor soil quality and moisture levels")
+            help_panel.add_text("• Some crops add nitrogen to the soil")
+            help_panel.add_text("• Use the market to track crop prices")
+            help_panel.add_spacer()
+            help_panel.add_button("BACK", "back")
+            
+            # Store panel reference for event handling
+            self.help_panel = help_panel
+            
+            ui.add_element(help_panel)
+            ui.render()
+            return
+        
+        # Fallback to legacy
+        self.draw_help_screen_legacy()
+    
+    def draw_help_screen_legacy(self):
+        """Legacy help screen rendering"""
+        # Simple fallback implementation
+        self.screen.fill((30, 40, 30))
+        title = self.menu_title_font.render("HELP", True, (144, 238, 144))
+        title_rect = title.get_rect(center=(self.screen.get_width() // 2, 100))
         self.screen.blit(title, title_rect)
         
-        # Draw help content in two columns for better space usage
-        left_column = []
-        right_column = []
-        current_col = left_column
-        
-        for line in self.help_content:
-            if line.startswith("TIPS:"):
-                current_col = right_column
-            current_col.append(line)
-        
-        # Draw left column
-        y_start = 140
-        for i, line in enumerate(left_column):
-            if line == "":
-                continue
-                
-            if line.endswith(":"):
-                color = YELLOW
-                font = self.ui_font
-            elif line.startswith("  •"):
-                color = WHITE
-                font = self.font
-            else:
-                color = LIGHT_GREEN
-                font = self.font
-            
-            text = font.render(line, True, color)
-            self.screen.blit(text, (50, y_start + i * 22))
-        
-        # Draw right column
-        for i, line in enumerate(right_column):
-            if line == "":
-                continue
-                
-            if line.endswith(":"):
-                color = YELLOW
-                font = self.ui_font
-            elif line.startswith("  •"):
-                color = WHITE
-                font = self.font
-            else:
-                color = LIGHT_GREEN
-                font = self.font
-            
-            text = font.render(line, True, color)
-            self.screen.blit(text, (SCREEN_WIDTH // 2 + 50, y_start + i * 22))
-        
-        # Instructions
-        instructions = self.font.render("Press ESC to return to Options menu", True, GRAY)
-        inst_rect = instructions.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 50))
-        self.screen.blit(instructions, inst_rect)
+        content = self.font.render("Help content not available in legacy mode", True, (200, 200, 200))
+        content_rect = content.get_rect(center=(self.screen.get_width() // 2, 200))
+        self.screen.blit(content, content_rect)
     
     def return_to_game(self):
         """Return to the game"""
@@ -2045,12 +3050,42 @@ class FieldStation:
         self.game_state = GameState.MENU
         self.previous_game_state = None
     
+    def return_to_pause_menu(self):
+        """Return to pause menu"""
+        self.game_state = GameState.PAUSE_MENU
+        self.previous_game_state = None
+    
+    def toggle_sound(self):
+        """Toggle sound on/off (placeholder for now)"""
+        # This is a placeholder - you can implement actual sound control later
+        if not hasattr(self, 'sound_enabled'):
+            self.sound_enabled = True
+        self.sound_enabled = not self.sound_enabled
+        status = "ON" if self.sound_enabled else "OFF"
+        self.show_message(f"Sound: {status}", WHITE, 2000)
+    
     def handle_options_event(self, event):
         """Handle events in the options menu"""
+        # Handle ESC key specially
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            self.game_state = self.previous_game_state or GameState.MENU
+            return True
+        
+        # If using UI framework, delegate to panel
+        if UI_FRAMEWORK_AVAILABLE and hasattr(self, 'options_panel'):
+            result = self.options_panel.handle_event(event)
+            
+            if result['type'] == 'button_click':
+                # Map button IDs back to option functions
+                for option_name, option_func in self.options_items:
+                    if result['id'] == option_name.lower().replace(' ', '_'):
+                        option_func()
+                        break
+            return True
+        
+        # Fallback to legacy handling
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                self.game_state = GameState.MENU
-            elif event.key == pygame.K_UP:
+            if event.key == pygame.K_UP:
                 self.options_selection = (self.options_selection - 1) % len(self.options_items)
             elif event.key == pygame.K_DOWN:
                 self.options_selection = (self.options_selection + 1) % len(self.options_items)
@@ -2062,62 +3097,110 @@ class FieldStation:
             if event.button == 1:  # Left click
                 mouse_pos = pygame.mouse.get_pos()
                 for i, (option_name, option_func) in enumerate(self.options_items):
-                    y_pos = 300 + i * 80
-                    option_rect = pygame.Rect(SCREEN_WIDTH // 2 - 300, y_pos - 30, 600, 60)
-                    if option_rect.collidepoint(mouse_pos):
+                    # Use the actual button positions from draw_options_screen
+                    if not hasattr(self, 'options_buttons_start_y'):
+                        # Fallback if options screen hasn't been drawn yet
+                        self.options_buttons_start_y = SCREEN_HEIGHT // 2 - 100
+                    button_y = self.options_buttons_start_y + i * 50
+                    button_rect = pygame.Rect(SCREEN_WIDTH // 2 - 200, button_y, 400, 45)
+                    if button_rect.collidepoint(mouse_pos):
                         self.options_selection = i
                         option_func()
                         break
         
         return True
     
+    def handle_help_event(self, event):
+        """Handle events in the help screen"""
+        # Handle ESC key specially
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            self.game_state = GameState.MENU
+            return True
+        
+        # If using UI framework, delegate to panel
+        if UI_FRAMEWORK_AVAILABLE and hasattr(self, 'help_panel'):
+            result = self.help_panel.handle_event(event)
+            
+            if result['type'] == 'button_click':
+                if result['id'] == 'back':
+                    self.game_state = GameState.MENU
+            return True
+        
+        return True
+    
+    def handle_about_event(self, event):
+        """Handle events in the about screen"""
+        # Handle ESC key specially
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            self.game_state = GameState.MENU
+            return True
+        
+        # If using UI framework, delegate to panel
+        if UI_FRAMEWORK_AVAILABLE and hasattr(self, 'about_panel'):
+            result = self.about_panel.handle_event(event)
+            
+            if result['type'] == 'button_click':
+                if result['id'] == 'back':
+                    self.game_state = GameState.MENU
+            return True
+        
+        return True
+    
+    def handle_achievements_event(self, event):
+        """Handle events in the achievements screen"""
+        # Handle ESC key specially
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            self.game_state = GameState.MENU
+            return True
+        
+        # If using UI framework, delegate to panel
+        if UI_FRAMEWORK_AVAILABLE and hasattr(self, 'achievements_panel'):
+            result = self.achievements_panel.handle_event(event)
+            
+            if result['type'] == 'button_click':
+                if result['id'] == 'back':
+                    self.game_state = GameState.MENU
+            return True
+        
+        return True
+    
     def handle_farm_setup_event(self, event):
         """Handle events in the garden setup screen"""
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                self.game_state = GameState.MENU
-                return True
-            
-            if self.setup_name_input_active:
-                # Handle text input for farm name
-                if event.key == pygame.K_RETURN or event.key == pygame.K_TAB:
-                    # Move to location selection
-                    self.setup_name_input_active = False
-                elif event.key == pygame.K_BACKSPACE:
-                    self.farm_name = self.farm_name[:-1]
-                else:
-                    # Add character if it's printable
-                    if len(event.unicode) == 1 and event.unicode.isprintable():
-                        if len(self.farm_name) < 30:  # Limit name length
-                            self.farm_name += event.unicode
-            else:
-                # Handle location/season selection navigation
-                if self.setup_season_selection == -1:
-                    # In location selection mode
-                    if event.key == pygame.K_UP:
-                        self.setup_location_selection = (self.setup_location_selection - 1) % len(self.available_locations)
-                    elif event.key == pygame.K_DOWN:
-                        self.setup_location_selection = (self.setup_location_selection + 1) % len(self.available_locations)
-                    elif event.key == pygame.K_RETURN:
-                        # Move to season selection
-                        self.setup_season_selection = 0
-                    elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_TAB:
-                        # Go back to name input
-                        self.setup_name_input_active = True
-                else:
-                    # In season selection mode
-                    if event.key == pygame.K_UP:
-                        self.setup_season_selection = (self.setup_season_selection - 1) % len(self.available_seasons)
-                    elif event.key == pygame.K_DOWN:
-                        self.setup_season_selection = (self.setup_season_selection + 1) % len(self.available_seasons)
-                    elif event.key == pygame.K_RETURN:
-                        # Start the game with selected settings
-                        self.start_new_game_with_setup()
-                    elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_TAB:
-                        # Go back to location selection
-                        self.setup_season_selection = -1
+        # Handle ESC key specially
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            self.game_state = GameState.MENU
+            return True
         
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+        # If using UI framework, delegate to panel
+        if UI_FRAMEWORK_AVAILABLE and hasattr(self, 'farm_setup_panel'):
+            result = self.farm_setup_panel.handle_event(event)
+            
+            if result['type'] == 'button_click':
+                if result['id'] == 'start':
+                    self.start_new_game_with_setup()
+                elif result['id'] == 'back':
+                    self.game_state = GameState.MENU
+            elif result['type'] == 'field_change':
+                if result['id'] == 'farm_name':
+                    self.farm_name = result['value']
+            elif result['type'] == 'field_submit':
+                if result['id'] == 'farm_name':
+                    self.farm_name = result['value']
+                    self.setup_name_input_active = False
+            elif result['type'] == 'field_focus':
+                if result['id'] == 'farm_name':
+                    self.setup_name_input_active = True
+                else:
+                    self.setup_name_input_active = False
+            
+            # Handle option list clicks (locations and seasons)
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mouse_pos = event.pos
+                # This is a simplified version - would need more complex handling for option lists
+                # For now, keeping the original mouse click handling below
+        
+        # Original handling for clicks on options
+        if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left click
                 mouse_pos = pygame.mouse.get_pos()
                 
@@ -2188,15 +3271,34 @@ class FieldStation:
     
     def handle_menu_event(self, event):
         """Handle events in the menu"""
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                # ESC in main menu returns to game if one is in progress
-                if self.game_in_progress:
-                    self.game_state = GameState.GAME
-                    return True
-                # If no game in progress, ESC does nothing (stay in menu)
+        # Handle ESC key specially
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            # ESC in main menu returns to game if one is in progress
+            if self.game_in_progress:
+                self.game_state = GameState.GAME
                 return True
-            elif event.key == pygame.K_UP:
+            # If no game in progress, ESC does nothing (stay in menu)
+            return True
+        
+        # If using UI framework, delegate to menu panel
+        if UI_FRAMEWORK_AVAILABLE and hasattr(self, 'menu_panel'):
+            handled = self.menu_panel.handle_event(event)
+            
+            # Check if an option was clicked
+            clicked_option = self.menu_panel.get_clicked_option()
+            if clicked_option:
+                self.menu_selection = self.menu_panel.selected_index
+                return self.activate_menu_item()
+            
+            # Sync selection state
+            if self.menu_panel.selected_index != self.menu_selection:
+                self.menu_selection = self.menu_panel.selected_index
+            
+            return True
+        
+        # Fallback to legacy handling
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
                 self.menu_selection = (self.menu_selection - 1) % len(self.menu_options)
             elif event.key == pygame.K_DOWN:
                 self.menu_selection = (self.menu_selection + 1) % len(self.menu_options)
@@ -2206,10 +3308,12 @@ class FieldStation:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left click
                 mouse_pos = pygame.mouse.get_pos()
-                for i in range(len(self.menu_options)):
-                    if self.get_menu_item_rect(i).collidepoint(mouse_pos):
-                        self.menu_selection = i
-                        return self.activate_menu_item()
+                # Use the actual button rects stored during drawing
+                if hasattr(self, 'main_menu_button_rects'):
+                    for i, rect in self.main_menu_button_rects.items():
+                        if rect.collidepoint(mouse_pos):
+                            self.menu_selection = i
+                            return self.activate_menu_item()
         
         return True
     
@@ -2282,11 +3386,13 @@ class FieldStation:
             if self.load_game():
                 self.game_state = GameState.GAME
             # If load failed, stay in menu
-        elif selected == "Tutorials":
-            self.game_state = GameState.TUTORIALS
         elif selected == "Achievements":
             self.game_state = GameState.ACHIEVEMENTS
-        elif selected == "Options":
+        elif selected == "Help":
+            self.game_state = GameState.HELP
+        elif selected == "About":
+            self.game_state = GameState.ABOUT
+        elif selected == "Settings" or selected == "Options":  # Handle both names
             self.previous_game_state = GameState.MENU
             self.game_state = GameState.OPTIONS
             self.update_options_items()  # Refresh options to show "Back to Menu"
@@ -2368,24 +3474,30 @@ class FieldStation:
         elif self.game_state == GameState.PAUSE_MENU:
             return self.handle_pause_menu_event(event)
         
-        # Interface controls screen (using TUTORIALS state)
+        # Interface controls screen (using TUTORIALS state for Options > Interface)
         elif self.game_state == GameState.TUTORIALS:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                self.game_state = GameState.OPTIONS  # Return to options, not main menu
+                self.game_state = GameState.OPTIONS  # Return to options menu
             return True
         
         # Help screen
         elif self.game_state == GameState.HELP:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                self.game_state = GameState.OPTIONS  # Return to options, not main menu
-            return True
+            return self.handle_help_event(event)
         
         # Farm setup screen
         elif self.game_state == GameState.FARM_SETUP:
             return self.handle_farm_setup_event(event)
         
+        # About screen
+        elif self.game_state == GameState.ABOUT:
+            return self.handle_about_event(event)
+        
+        # Achievements screen
+        elif self.game_state == GameState.ACHIEVEMENTS:
+            return self.handle_achievements_event(event)
+            
         # Other placeholder screens
-        elif self.game_state in [GameState.LOAD, GameState.ACHIEVEMENTS]:
+        elif self.game_state in [GameState.LOAD]:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 self.game_state = GameState.MENU
             return True
@@ -2990,7 +4102,9 @@ class FieldStation:
             if self.game_state == GameState.GAME:
                 self.screen.fill(self.get_seasonal_background_color())
             else:
-                self.screen.fill(BLACK)
+                # Don't fill with black for menu/options - we'll draw background image
+                if self.game_state not in [GameState.MENU, GameState.OPTIONS]:
+                    self.screen.fill(BLACK)
             
             # Draw based on current state
             if self.game_state == GameState.MENU:
@@ -3047,7 +4161,10 @@ class FieldStation:
                 self.draw_interface_controls()
             
             elif self.game_state == GameState.ACHIEVEMENTS:
-                self.draw_placeholder_screen("ACHIEVEMENTS")
+                self.draw_achievements_screen()
+            
+            elif self.game_state == GameState.ABOUT:
+                self.draw_about_screen()
             
             elif self.game_state == GameState.OPTIONS:
                 self.draw_options_screen()

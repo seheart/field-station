@@ -1,0 +1,6 @@
+{
+  "tracker_type": "github",
+  "owner": "your-username",
+  "repo": "field-station",
+  "token": "ghp_your_github_token"
+}

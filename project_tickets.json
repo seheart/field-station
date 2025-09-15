@@ -1,0 +1,257 @@
+{
+  "FS-001": {
+    "id": "FS-001",
+    "title": "Fix Enter Key Feedback in Farm Name Input",
+    "description": "When user presses Enter in farm name field, provide visual feedback that the action was processed",
+    "ticket_type": "TicketType.BUG",
+    "status": "TicketStatus.BACKLOG",
+    "priority": "Priority.HIGH",
+    "assignee": null,
+    "reporter": "System",
+    "epic_id": "FS-EPIC-002",
+    "parent_id": null,
+    "story_points": 3,
+    "sprint_id": "FS-SPRINT-001",
+    "created_date": "2025-09-07T21:10:14.436583",
+    "updated_date": "2025-09-07T21:10:14.436589",
+    "due_date": null,
+    "labels": [],
+    "acceptance_criteria": [
+      "Enter key press provides visual feedback",
+      "Field state clearly indicates input was accepted",
+      "User knows what happened after pressing Enter"
+    ],
+    "qa_test_ids": [
+      "US003"
+    ]
+  },
+  "FS-002": {
+    "id": "FS-002",
+    "title": "Fix Menu Click Detection Issues",
+    "description": "Main menu items are not responding to mouse clicks for navigation",
+    "ticket_type": "TicketType.BUG",
+    "status": "TicketStatus.BACKLOG",
+    "priority": "Priority.CRITICAL",
+    "assignee": null,
+    "reporter": "System",
+    "epic_id": "FS-EPIC-002",
+    "parent_id": null,
+    "story_points": 5,
+    "sprint_id": "FS-SPRINT-001",
+    "created_date": "2025-09-07T21:10:14.436890",
+    "updated_date": "2025-09-07T21:10:14.436896",
+    "due_date": null,
+    "labels": [],
+    "acceptance_criteria": [
+      "All menu items respond to mouse clicks",
+      "Navigation works correctly between pages",
+      "Click detection rectangles are properly defined"
+    ],
+    "qa_test_ids": [
+      "US001",
+      "US010"
+    ]
+  },
+  "FS-003": {
+    "id": "FS-003",
+    "title": "Implement Hover Effects for Menu Items",
+    "description": "Add hover effects and icon display when user hovers over menu items",
+    "ticket_type": "TicketType.STORY",
+    "status": "TicketStatus.BACKLOG",
+    "priority": "Priority.MEDIUM",
+    "assignee": null,
+    "reporter": "System",
+    "epic_id": "FS-EPIC-002",
+    "parent_id": null,
+    "story_points": 2,
+    "sprint_id": null,
+    "created_date": "2025-09-07T21:10:14.437193",
+    "updated_date": "2025-09-07T21:10:14.437199",
+    "due_date": null,
+    "labels": [],
+    "acceptance_criteria": [
+      "Icons appear on menu item hover",
+      "Smooth hover transitions",
+      "Consistent hover behavior across all menu items"
+    ],
+    "qa_test_ids": []
+  },
+  "FS-004": {
+    "id": "FS-004",
+    "title": "Enhanced User Flow QA Testing",
+    "description": "Improve user flow QA framework to achieve higher success rates",
+    "ticket_type": "TicketType.TASK",
+    "status": "TicketStatus.BACKLOG",
+    "priority": "Priority.HIGH",
+    "assignee": null,
+    "reporter": "System",
+    "epic_id": "FS-EPIC-003",
+    "parent_id": null,
+    "story_points": 8,
+    "sprint_id": "FS-SPRINT-001",
+    "created_date": "2025-09-07T21:10:14.437514",
+    "updated_date": "2025-09-07T21:10:14.437516",
+    "due_date": null,
+    "labels": [],
+    "acceptance_criteria": [
+      "User flow QA success rate > 80%",
+      "All user stories have automated tests",
+      "Screenshot validation working",
+      "Error reporting improved"
+    ],
+    "qa_test_ids": []
+  },
+  "FS-005": {
+    "id": "FS-005",
+    "title": "Issue Tracker Integration",
+    "description": "Complete integration with Jira/GitHub for automatic issue creation",
+    "ticket_type": "TicketType.STORY",
+    "status": "TicketStatus.BACKLOG",
+    "priority": "Priority.MEDIUM",
+    "assignee": null,
+    "reporter": "System",
+    "epic_id": "FS-EPIC-003",
+    "parent_id": null,
+    "story_points": 5,
+    "sprint_id": "FS-SPRINT-001",
+    "created_date": "2025-09-07T21:10:14.437907",
+    "updated_date": "2025-09-07T21:10:14.437914",
+    "due_date": null,
+    "labels": [],
+    "acceptance_criteria": [
+      "QA failures automatically create tickets",
+      "Integration works with multiple platforms",
+      "Proper ticket categorization and labeling"
+    ],
+    "qa_test_ids": []
+  },
+  "FS-006": {
+    "id": "FS-006",
+    "title": "Dark Mode Wiki Implementation",
+    "description": "Implement dark mode wiki server for project documentation",
+    "ticket_type": "TicketType.STORY",
+    "status": "TicketStatus.DONE",
+    "priority": "Priority.LOW",
+    "assignee": null,
+    "reporter": "System",
+    "epic_id": "FS-EPIC-004",
+    "parent_id": null,
+    "story_points": 3,
+    "sprint_id": null,
+    "created_date": "2025-09-07T21:10:14.438273",
+    "updated_date": "2025-09-07T21:10:14.438280",
+    "due_date": null,
+    "labels": [],
+    "acceptance_criteria": [
+      "Dark mode styling implemented",
+      "All documentation accessible via browser",
+      "Professional GitHub-style theming",
+      "Navigation between docs works"
+    ],
+    "qa_test_ids": []
+  },
+  "FS-007": {
+    "id": "FS-007",
+    "title": "User Stories Documentation",
+    "description": "Create comprehensive user stories documentation with acceptance criteria",
+    "ticket_type": "TicketType.TASK",
+    "status": "TicketStatus.DONE",
+    "priority": "Priority.MEDIUM",
+    "assignee": null,
+    "reporter": "System",
+    "epic_id": "FS-EPIC-004",
+    "parent_id": null,
+    "story_points": 2,
+    "sprint_id": null,
+    "created_date": "2025-09-07T21:10:14.438658",
+    "updated_date": "2025-09-07T21:10:14.438664",
+    "due_date": null,
+    "labels": [],
+    "acceptance_criteria": [
+      "All 10 user stories documented",
+      "Acceptance criteria defined",
+      "Test steps specified",
+      "Integration with QA framework"
+    ],
+    "qa_test_ids": []
+  },
+  "FS-008": {
+    "id": "FS-008",
+    "title": "Farm Setup Form Validation",
+    "description": "Implement comprehensive form validation for farm setup page",
+    "ticket_type": "TicketType.STORY",
+    "status": "TicketStatus.BACKLOG",
+    "priority": "Priority.HIGH",
+    "assignee": null,
+    "reporter": "System",
+    "epic_id": "FS-EPIC-005",
+    "parent_id": null,
+    "story_points": 5,
+    "sprint_id": null,
+    "created_date": "2025-09-07T21:10:14.439054",
+    "updated_date": "2025-09-07T21:10:14.439057",
+    "due_date": null,
+    "labels": [],
+    "acceptance_criteria": [
+      "Empty farm name disables START button",
+      "Season selection required for form submission",
+      "Clear visual feedback for validation states",
+      "Error messages for invalid inputs"
+    ],
+    "qa_test_ids": [
+      "US004"
+    ]
+  },
+  "FS-009": {
+    "id": "FS-009",
+    "title": "Keyboard Navigation Support",
+    "description": "Add full keyboard navigation support for menu system",
+    "ticket_type": "TicketType.STORY",
+    "status": "TicketStatus.BACKLOG",
+    "priority": "Priority.MEDIUM",
+    "assignee": null,
+    "reporter": "System",
+    "epic_id": "FS-EPIC-002",
+    "parent_id": null,
+    "story_points": 8,
+    "sprint_id": null,
+    "created_date": "2025-09-07T21:10:14.439460",
+    "updated_date": "2025-09-07T21:10:14.439462",
+    "due_date": null,
+    "labels": [],
+    "acceptance_criteria": [
+      "Arrow keys navigate menu items",
+      "Enter key activates selected items",
+      "Visual indication of selected item",
+      "Tab navigation through form fields"
+    ],
+    "qa_test_ids": [
+      "US002"
+    ]
+  },
+  "FS-010": {
+    "id": "FS-010",
+    "title": "SDLC Integration & CI/CD Pipeline",
+    "description": "Set up complete SDLC integration with automated testing and deployment",
+    "ticket_type": "TicketType.TASK",
+    "status": "TicketStatus.BACKLOG",
+    "priority": "Priority.MEDIUM",
+    "assignee": null,
+    "reporter": "System",
+    "epic_id": "FS-EPIC-003",
+    "parent_id": null,
+    "story_points": 13,
+    "sprint_id": null,
+    "created_date": "2025-09-07T21:10:14.439908",
+    "updated_date": "2025-09-07T21:10:14.439910",
+    "due_date": null,
+    "labels": [],
+    "acceptance_criteria": [
+      "Pre-commit hooks implemented",
+      "CI/CD pipeline configured",
+      "Automated QA testing in pipeline",
+      "Deployment gates based on QA results"
+    ],
+    "qa_test_ids": []
+  }
+}

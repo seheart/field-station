@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Field Station - UI Design Mockup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .design-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            color: #2C1810;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4B7C2F;
+        }
+
+        /* TILE DESIGN SECTION */
+        .tile-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 180px);
+            gap: 20px;
+            justify-content: center;
+            margin: 40px 0;
+            perspective: 1000px;
+        }
+
+        .tile-3d {
+            width: 180px;
+            height: 200px;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(25deg) rotateY(-20deg);
+            transition: transform 0.3s ease;
+        }
+
+        .tile-3d:hover {
+            transform: rotateX(20deg) rotateY(-15deg) scale(1.05);
+        }
+
+        /* Soil layers */
+        .soil-top {
+            position: absolute;
+            width: 180px;
+            height: 120px;
+            background: linear-gradient(135deg, #73B347 0%, #4B7C2F 100%);
+            transform: rotateX(90deg) translateZ(60px);
+            border: 2px solid #2D5016;
+        }
+
+        .soil-front {
+            position: absolute;
+            width: 180px;
+            height: 120px;
+            background: linear-gradient(to bottom, 
+                #73B347 0%, 
+                #4B7C2F 10%,
+                #2C1810 10%,
+                #4A3426 40%,
+                #6B4E3D 40%,
+                #8B7355 70%,
+                #5C5C5C 70%,
+                #3C3C3C 100%
+            );
+            transform: translateZ(90px);
+            border-left: 3px solid #1a0f08;
+            border-right: 3px solid #1a0f08;
+            border-bottom: 3px solid #1a0f08;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+        }
+
+        .soil-left {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(to bottom,
+                #5B9A2F 0%,
+                #3B6A1F 10%,
+                #1C0810 10%,
+                #3A2416 40%,
+                #5B3E2D 40%,
+                #7B6345 70%,
+                #4C4C4C 70%,
+                #2C2C2C 100%
+            );
+            transform: rotateY(-90deg) translateZ(90px);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .soil-right {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            right: 0;
+            background: linear-gradient(to bottom,
+                #5B9A2F 0%,
+                #3B6A1F 10%,
+                #1C0810 10%,
+                #3A2416 40%,
+                #5B3E2D 40%,
+                #7B6345 70%,
+                #4C4C4C 70%,
+                #2C2C2C 100%
+            );
+            transform: rotateY(90deg) translateZ(90px);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+        }
+
+        /* Randomized edges effect */
+        .soil-front::before {
+            content: '';
+            position: absolute;
+            left: -3px;
+            top: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(to bottom,
+                transparent 0%,
+                rgba(0,0,0,0.2) 10%,
+                rgba(0,0,0,0.3) 90%,
+                rgba(0,0,0,0.4) 100%
+            );
+            clip-path: polygon(
+                0% 0%, 100% 0%,
+                90% 15%, 95% 25%,
+                85% 35%, 90% 45%,
+                95% 55%, 85% 65%,
+                90% 75%, 95% 85%,
+                100% 100%, 0% 100%
+            );
+        }
+
+        /* Crops on top */
+        .crop-wheat {
+            position: absolute;
+            width: 100%;
+            height: 40px;
+            top: -40px;
+            left: 0;
+            background: linear-gradient(to top, #D4A574 0%, #F4E4C1 50%, #FFD700 100%);
+            clip-path: polygon(
+                10% 100%, 15% 60%, 12% 40%, 18% 0%,
+                25% 100%, 30% 70%, 28% 45%, 35% 5%,
+                45% 100%, 48% 65%, 46% 35%, 52% 0%,
+                65% 100%, 68% 70%, 66% 40%, 72% 10%,
+                85% 100%, 88% 60%, 86% 30%, 92% 0%
+            );
+        }
+
+        .crop-corn {
+            position: absolute;
+            width: 100%;
+            height: 60px;
+            top: -60px;
+            left: 0;
+            background: linear-gradient(to top, #4B7C2F 0%, #73B347 70%, #8FD14F 100%);
+            clip-path: polygon(
+                20% 100%, 15% 70%, 18% 30%, 22% 0%,
+                50% 100%, 45% 75%, 48% 35%, 52% 5%,
+                80% 100%, 75% 70%, 78% 40%, 82% 0%
+            );
+        }
+
+        /* UI PANELS SECTION */
+        .ui-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        /* Modern flat panel style to match low-poly tiles */
+        .panel-modern {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #4B7C2F;
+            border-radius: 8px;
+            padding: 0;
+            box-shadow: 0 8px 32px rgba(44, 24, 16, 0.2);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #4B7C2F 0%, #73B347 100%);
+            color: white;
+            padding: 12px 16px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-close {
+            width: 24px;
+            height: 24px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .panel-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .panel-body {
+            padding: 20px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: linear-gradient(90deg, rgba(75, 124, 47, 0.05) 0%, transparent 100%);
+            border-left: 3px solid #4B7C2F;
+        }
+
+        .stat-label {
+            color: #2C1810;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            color: #4B7C2F;
+            font-weight: 600;
+        }
+
+        .stat-bar {
+            width: 100%;
+            height: 8px;
+            background: #E0E0E0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4B7C2F 0%, #73B347 100%);
+            transition: width 0.3s ease;
+        }
+
+        /* Buttons matching low-poly style */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-modern {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4B7C2F 0%, #73B347 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(75, 124, 47, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(75, 124, 47, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #4B7C2F;
+            border: 2px solid #4B7C2F;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(75, 124, 47, 0.1);
+        }
+
+        /* Popup/Dialog style */
+        .popup-example {
+            position: relative;
+            background: white;
+            border-radius: 12px;
+            padding: 0;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .popup-header {
+            background: linear-gradient(135deg, #6B4E3D 0%, #8B7355 100%);
+            color: white;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .popup-body {
+            padding: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            display: block;
+            color: #2C1810;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .input-modern {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #E0E0E0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border 0.2s;
+        }
+
+        .input-modern:focus {
+            outline: none;
+            border-color: #4B7C2F;
+        }
+
+        .dropdown-modern {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #E0E0E0;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Icon buttons */
+        .icon-bar {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(44, 24, 16, 0.05);
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .icon-btn {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border: 2px solid #4B7C2F;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 20px;
+        }
+
+        .icon-btn:hover {
+            background: linear-gradient(135deg, #4B7C2F 0%, #73B347 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(75, 124, 47, 0.3);
+        }
+
+        /* Season indicator */
+        .season-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #FFB833 0%, #FFDB58 100%);
+            border-radius: 20px;
+            color: #2C1810;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(255, 184, 51, 0.3);
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .style-option {
+            padding: 20px;
+            border: 2px solid #E0E0E0;
+            border-radius: 8px;
+        }
+
+        .style-option h3 {
+            color: #4B7C2F;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌾 Field Station - UI Design Mockup</h1>
+
+        <!-- 3D TILE DESIGN -->
+        <div class="design-section">
+            <h2>Low-Poly 3D Tile Design with Visible Soil Layers</h2>
+            <p style="margin-bottom: 20px;">Each tile shows depth with distinct soil layers. Hover to see the 3D effect.</p>
+            
+            <div class="tile-grid">
+                <!-- Tile 1 - Wheat -->
+                <div class="tile-3d">
+                    <div class="crop-wheat"></div>
+                    <div class="soil-top"></div>
+                    <div class="soil-front"></div>
+                    <div class="soil-left"></div>
+                    <div class="soil-right"></div>
+                </div>
+
+                <!-- Tile 2 - Empty/Grass -->
+                <div class="tile-3d">
+                    <div class="soil-top"></div>
+                    <div class="soil-front"></div>
+                    <div class="soil-left"></div>
+                    <div class="soil-right"></div>
+                </div>
+
+                <!-- Tile 3 - Corn -->
+                <div class="tile-3d">
+                    <div class="crop-corn"></div>
+                    <div class="soil-top"></div>
+                    <div class="soil-front"></div>
+                    <div class="soil-left"></div>
+                    <div class="soil-right"></div>
+                </div>
+
+                <!-- Tile 4 - Empty -->
+                <div class="tile-3d">
+                    <div class="soil-top"></div>
+                    <div class="soil-front"></div>
+                    <div class="soil-left"></div>
+                    <div class="soil-right"></div>
+                </div>
+
+                <!-- Tile 5 - Wheat -->
+                <div class="tile-3d">
+                    <div class="crop-wheat"></div>
+                    <div class="soil-top"></div>
+                    <div class="soil-front"></div>
+                    <div class="soil-left"></div>
+                    <div class="soil-right"></div>
+                </div>
+
+                <!-- Tile 6 - Empty -->
+                <div class="tile-3d">
+                    <div class="soil-top"></div>
+                    <div class="soil-front"></div>
+                    <div class="soil-left"></div>
+                    <div class="soil-right"></div>
+                </div>
+
+                <!-- Tile 7 - Corn -->
+                <div class="tile-3d">
+                    <div class="crop-corn"></div>
+                    <div class="soil-top"></div>
+                    <div class="soil-front"></div>
+                    <div class="soil-left"></div>
+                    <div class="soil-right"></div>
+                </div>
+
+                <!-- Tile 8 - Empty -->
+                <div class="tile-3d">
+                    <div class="soil-top"></div>
+                    <div class="soil-front"></div>
+                    <div class="soil-left"></div>
+                    <div class="soil-right"></div>
+                </div>
+
+                <!-- Tile 9 - Wheat -->
+                <div class="tile-3d">
+                    <div class="crop-wheat"></div>
+                    <div class="soil-top"></div>
+                    <div class="soil-front"></div>
+                    <div class="soil-left"></div>
+                    <div class="soil-right"></div>
+                </div>
+            </div>
+
+            <p style="text-align: center; color: #666;">
+                <strong>Key Features:</strong> Visible soil stratification • Natural edge variations • 
+                Low-poly aesthetic • Depth perception
+            </p>
+        </div>
+
+        <!-- UI PANEL DESIGNS -->
+        <div class="design-section">
+            <h2>Modern Flat UI Panels (Matching Low-Poly Style)</h2>
+            
+            <div class="ui-examples">
+                <!-- Info Panel -->
+                <div class="panel-modern">
+                    <div class="panel-header">
+                        <span>Tile Information</span>
+                        <div class="panel-close">×</div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="stat-row">
+                            <span class="stat-label">Soil Quality</span>
+                            <span class="stat-value">75%</span>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-fill" style="width: 75%;"></div>
+                        </div>
+
+                        <div class="stat-row" style="margin-top: 16px;">
+                            <span class="stat-label">Moisture</span>
+                            <span class="stat-value">60%</span>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-fill" style="width: 60%; background: linear-gradient(90deg, #1B3A4B 0%, #4A90A4 100%);"></div>
+                        </div>
+
+                        <div class="stat-row" style="margin-top: 16px;">
+                            <span class="stat-label">Nitrogen</span>
+                            <span class="stat-value">45%</span>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-fill" style="width: 45%; background: linear-gradient(90deg, #E67E22 0%, #F39C12 100%);"></div>
+                        </div>
+
+                        <div class="button-group">
+                            <button class="btn-modern btn-primary">Plant</button>
+                            <button class="btn-modern btn-secondary">Fertilize</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Popup -->
+                <div class="popup-example">
+                    <div class="popup-header">
+                        Plant Selection
+                    </div>
+                    <div class="popup-body">
+                        <div class="input-group">
+                            <label class="input-label">Choose Crop</label>
+                            <select class="dropdown-modern">
+                                <option>🌾 Wheat - 90 days</option>
+                                <option>🌽 Corn - 120 days</option>
+                                <option>🥔 Potato - 70 days</option>
+                                <option>🥕 Carrot - 60 days</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label">Quantity</label>
+                            <input type="number" class="input-modern" value="1" min="1" max="9">
+                        </div>
+
+                        <div style="padding: 12px; background: rgba(75, 124, 47, 0.1); border-radius: 6px; margin-bottom: 16px;">
+                            <p style="font-size: 14px; color: #2C1810; margin: 0;">
+                                <strong>Cost:</strong> $10 per seed<br>
+                                <strong>Expected Yield:</strong> $35-45
+                            </p>
+                        </div>
+
+                        <div class="button-group">
+                            <button class="btn-modern btn-primary" style="flex: 1;">Confirm</button>
+                            <button class="btn-modern btn-secondary" style="flex: 1;">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Icon Bar Example -->
+            <div style="margin-top: 30px;">
+                <h3 style="color: #2C1810; margin-bottom: 15px;">Bottom Icon Bar</h3>
+                <div class="icon-bar">
+                    <div class="icon-btn">📊</div>
+                    <div class="icon-btn">💰</div>
+                    <div class="icon-btn">⏱</div>
+                    <div class="icon-btn">❓</div>
+                    <div class="icon-btn">⚙</div>
+                    <div style="margin-left: auto;">
+                        <div class="season-indicator">
+                            <span>☀️</span>
+                            <span>Summer, Day 42</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STYLE COMPARISON -->
+        <div class="design-section">
+            <h2>Design Direction Options</h2>
+            
+            <div class="comparison">
+                <div class="style-option">
+                    <h3>Option A: Low-Poly Modern</h3>
+                    <ul style="color: #666; line-height: 1.8;">
+                        <li>Clean, geometric shapes</li>
+                        <li>Flat design UI panels</li>
+                        <li>Gradient accents</li>
+                        <li>Visible soil stratification</li>
+                        <li>Modern, minimalist aesthetic</li>
+                        <li>Focus on data visualization</li>
+                    </ul>
+                    <p style="margin-top: 15px; padding: 10px; background: #E8F5E9; border-radius: 4px;">
+                        <strong>Best for:</strong> Educational focus, scientific accuracy, modern feel
+                    </p>
+                </div>
+
+                <div class="style-option">
+                    <h3>Option B: Hand-Drawn Map Style</h3>
+                    <ul style="color: #666; line-height: 1.8;">
+                        <li>Watercolor textures</li>
+                        <li>Aged paper backgrounds</li>
+                        <li>Ribbon banners</li>
+                        <li>Soft, painted edges</li>
+                        <li>Storybook aesthetic</li>
+                        <li>Decorative flourishes</li>
+                    </ul>
+                    <p style="margin-top: 15px; padding: 10px; background: #FFF3E0; border-radius: 4px;">
+                        <strong>Best for:</strong> Cozy atmosphere, artistic appeal, nostalgic feel
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLOR PALETTE -->
+        <div class="design-section">
+            <h2>Proposed Color Palette</h2>
+            
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px;">
+                <div style="text-align: center;">
+                    <div style="width: 100px; height: 100px; background: #73B347; border-radius: 8px; margin-bottom: 8px;"></div>
+                    <small>Grass Light<br>#73B347</small>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 100px; height: 100px; background: #4B7C2F; border-radius: 8px; margin-bottom: 8px;"></div>
+                    <small>Grass Medium<br>#4B7C2F</small>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 100px; height: 100px; background: #2C1810; border-radius: 8px; margin-bottom: 8px;"></div>
+                    <small>Soil Dark<br>#2C1810</small>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 100px; height: 100px; background: #6B4E3D; border-radius: 8px; margin-bottom: 8px;"></div>
+                    <small>Soil Light<br>#6B4E3D</small>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 100px; height: 100px; background: #4A90A4; border-radius: 8px; margin-bottom: 8px;"></div>
+                    <small>Water<br>#4A90A4</small>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 100px; height: 100px; background: #FFB833; border-radius: 8px; margin-bottom: 8px;"></div>
+                    <small>Summer<br>#FFB833</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

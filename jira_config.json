@@ -1,0 +1,7 @@
+{
+  "tracker_type": "jira",
+  "base_url": "https://your-domain.atlassian.net",
+  "username": "your-email@domain.com",
+  "token": "your-api-token",
+  "project_key": "FIELDSTATION"
+}

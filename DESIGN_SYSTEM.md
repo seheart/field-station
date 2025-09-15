@@ -1,431 +1,301 @@
 # 🎨 Field Station Design System
 
-**A comprehensive visual language for scientific agricultural simulation**
+**Organic, Hand-drawn Agricultural Aesthetic**
 
 ---
 
-## 🌍 Design Philosophy
+## 🌿 **Design Philosophy**
 
-Field Station's design system bridges the gap between scientific accuracy and approachable gameplay. Our visual language emphasizes:
+Field Station uses an **organic, hand-drawn aesthetic** inspired by watercolor illustrations and medieval manuscript illuminations. The visual style evokes the warmth of soil, the flow of water, and the natural beauty of agricultural landscapes.
 
-- **Scientific Clarity**: Information-rich displays without overwhelming complexity
-- **Natural Aesthetics**: Earth tones and organic shapes reflecting agricultural themes
-- **Accessibility First**: WCAG 2.1 AA compliant colors and readable typography
-- **Consistent Interaction**: Predictable patterns for all user interactions
-
----
-
-## 🎨 Color Palette
-
-### Primary Colors - Earth & Agriculture
-
-#### Core Palette
-```
-SOIL_DARK       #2C1810   RGB(44, 24, 16)     - Rich dark earth
-SOIL_MEDIUM     #4A3426   RGB(74, 52, 38)     - Fertile soil
-SOIL_LIGHT      #6B4E3D   RGB(107, 78, 61)    - Dry earth
-
-GRASS_DARK      #2D5016   RGB(45, 80, 22)     - Deep grass
-GRASS_MEDIUM    #4B7C2F   RGB(75, 124, 47)    - Healthy vegetation
-GRASS_LIGHT     #73B347   RGB(115, 179, 71)   - Young growth
-
-WATER_DARK      #1B3A4B   RGB(27, 58, 75)     - Deep water
-WATER_MEDIUM    #2E5F7C   RGB(46, 95, 124)    - Clean water
-WATER_LIGHT     #4A90A4   RGB(74, 144, 164)   - Shallow water
-```
-
-#### Seasonal Accents
-```
-SPRING_GREEN    #8FD14F   RGB(143, 209, 79)   - New growth
-SUMMER_GOLD     #FFB833   RGB(255, 184, 51)   - Warm sun
-FALL_ORANGE     #E67E22   RGB(230, 126, 34)   - Harvest time
-WINTER_BLUE     #85C1E9   RGB(133, 193, 233)  - Frost & snow
-```
-
-### Semantic Colors - Status & Feedback
-
-#### System States
-```
-SUCCESS_GREEN   #27AE60   RGB(39, 174, 96)    - Positive actions
-WARNING_YELLOW  #F39C12   RGB(243, 156, 18)   - Caution states
-ERROR_RED       #E74C3C   RGB(231, 76, 60)    - Problems/errors
-INFO_BLUE       #3498DB   RGB(52, 152, 219)   - Information
-NEUTRAL_GRAY    #7F8C8D   RGB(127, 140, 141)  - Inactive states
-```
-
-#### UI Surface Colors
-```
-SURFACE_PRIMARY   #1A1A1A   RGB(26, 26, 26)     - Main UI backgrounds
-SURFACE_RAISED    #2D2D2D   RGB(45, 45, 45)     - Elevated elements
-SURFACE_OVERLAY   #3A3A3A   RGB(58, 58, 58)     - Modals/popups
-SURFACE_BORDER    #4A4A4A   RGB(74, 74, 74)     - Borders/dividers
-```
-
-### Accessibility Contrast Ratios
-
-All color combinations meet WCAG 2.1 AA standards:
-- **Text on backgrounds**: Minimum 4.5:1 contrast ratio
-- **Large text**: Minimum 3:1 contrast ratio
-- **Interactive elements**: Minimum 3:1 contrast ratio
+### **Core Principles**
+1. **Organic Warmth**: Earth tones and natural textures create a welcoming, scientific atmosphere
+2. **Hand-drawn Quality**: Subtle imperfections and organic shapes feel authentic and approachable
+3. **Educational Clarity**: Information is presented clearly without sacrificing visual beauty
+4. **Seasonal Harmony**: Colors and elements reflect the natural agricultural cycle
 
 ---
 
-## 📝 Typography System
+## 🎨 **Color Palette**
 
-### Font Stack
-
-```css
-Primary: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
-Monospace: "JetBrains Mono", "Consolas", "Monaco", monospace
-Display: "Outfit", "Inter", sans-serif
+### **Primary Earth Tones**
+```
+Soil Dark:   #4B3B30 (75, 59, 48)    - Rich organic earth
+Soil Medium: #8B7355 (139, 115, 85)  - Warm fertile soil
+Soil Light:  #A0916B (160, 145, 107) - Sandy earth
 ```
 
-### Type Scale (Base: 16px)
-
+### **Natural Greens**
 ```
-HEADING_1    32px / 40px line-height   Font-weight: 700   - Major sections
-HEADING_2    24px / 32px line-height   Font-weight: 600   - Panel titles
-HEADING_3    20px / 28px line-height   Font-weight: 600   - Subsections
-BODY_LARGE   18px / 28px line-height   Font-weight: 400   - Important text
-BODY_BASE    16px / 24px line-height   Font-weight: 400   - Standard text
-BODY_SMALL   14px / 20px line-height   Font-weight: 400   - Secondary info
-CAPTION      12px / 16px line-height   Font-weight: 500   - Labels/hints
-MICRO        10px / 14px line-height   Font-weight: 500   - Tiny details
+Grass Dark:   #5D6B4F (93, 107, 79)   - Deep forest
+Grass Medium: #6B7B5E (107, 123, 94)  - Sage green
+Grass Light:  #7A8471 (122, 132, 113) - Soft meadow
 ```
 
-### Text Colors
-
+### **Water Elements**
 ```
-TEXT_PRIMARY     #FFFFFF   - Main content (on dark)
-TEXT_SECONDARY   #B8B8B8   - Supporting content
-TEXT_DISABLED    #666666   - Inactive text
-TEXT_INVERSE     #1A1A1A   - Text on light backgrounds
+Water Dark:   #6495ED (100, 149, 237) - Deep flowing water
+Water Medium: #87CEEB (135, 206, 235) - Clear stream
+Water Light:  #B0E0E6 (176, 224, 230) - Shallow pools
+```
+
+### **Seasonal Accents**
+```
+Spring Green: #8FD14F (143, 209, 79)  - New growth
+Summer Gold:  #FFB833 (255, 184, 51)  - Warm sun
+Fall Orange:  #E67E22 (230, 126, 34)  - Harvest time
+Winter Blue:  #85C1E9 (133, 193, 233) - Frost & snow
+```
+
+### **Text Colors**
+```
+Primary:   #F5E6D3 (245, 230, 211) - Warm white text
+Secondary: #D4C4A8 (212, 196, 168) - Muted supporting text
+Disabled:  #7A8471 (122, 132, 113) - Subtle disabled text
+Inverse:   #4B3B30 (75, 59, 48)    - Dark text on light
 ```
 
 ---
 
-## 🎯 Icon System
+## 📝 **Typography**
 
-### Icon Principles
+### **Font Hierarchy**
+- **Title**: 72px - Main game title, major headings
+- **Heading 1**: 48px - Section titles, menu options
+- **Heading 2**: 32px - Panel titles, important labels
+- **Body**: 24px - Standard UI text, descriptions
+- **Body Small**: 20px - Secondary information
+- **Caption**: 16px - Labels, hints, metadata
 
-1. **Consistent Weight**: 2px stroke width at 24px base size
-2. **Rounded Corners**: 2px radius for friendlier appearance
-3. **Clear Metaphors**: Instantly recognizable agricultural symbols
-4. **Scalable Design**: Works from 16px to 48px
+### **Font Characteristics**
+- **Primary**: Clean, readable sans-serif for UI elements
+- **Accent**: Serif fonts for titles to add organic warmth
+- **Scientific**: Monospace for data, coordinates, precise measurements
 
-### Core Icon Set
+---
 
-#### Farm Management
+## 🎭 **Visual Elements**
+
+### **Buttons**
+- **Shape**: Rounded rectangles with subtle organic curves
+- **Normal**: Soil Medium background, Secondary text
+- **Hover**: Soil Light background, Primary text, subtle glow
+- **Active**: Soil Dark background, Primary text
+- **Indicator**: Summer Gold dot for selected items
+
+### **Panels**
+- **Background**: Soil Dark with subtle transparency
+- **Borders**: Soil Light, 2px width
+- **Headers**: Soil Medium background, Primary text
+- **Content**: Soil Dark background, Secondary text
+
+### **Decorative Elements**
+- **Stone Arches**: Subtle architectural elements in corners
+- **Organic Foliage**: Soft, overlapping circles in seasonal colors
+- **Water Features**: Flowing elliptical shapes with transparency
+- **Texture Overlays**: Subtle noise and variation for hand-drawn feel
+
+---
+
+## 🌊 **Animation & Transitions**
+
+### **Timing**
+- **Instant**: 0ms - No animation needed
+- **Quick**: 150ms - Hover states, micro-interactions
+- **Normal**: 250ms - Panel transitions, menu changes
+- **Slow**: 400ms - Complex animations, state changes
+
+### **Easing**
+- **Standard**: Ease-in-out for most transitions
+- **Organic**: Custom curves that feel natural and flowing
+- **Bounce**: Subtle spring effects for interactive elements
+
+### **Effects**
+- **Glow**: Soft, diffused light around selected elements
+- **Float**: Gentle vertical movement for breathing effect
+- **Fade**: Smooth opacity transitions for appearing/disappearing
+- **Scale**: Subtle size changes for emphasis
+
+---
+
+## 🎮 **Interactive States**
+
+### **Hover States**
+- **Background**: Lighter shade of base color
+- **Glow**: Soft outer glow in Primary text color
+- **Scale**: 1.02x size increase for buttons
+- **Cursor**: Hand pointer for clickable elements
+
+### **Active States**
+- **Background**: Darker shade of base color
+- **Border**: Thicker, more prominent border
+- **Text**: Primary color for maximum contrast
+- **Feedback**: Immediate visual response to clicks
+
+### **Disabled States**
+- **Background**: Neutral gray, reduced opacity
+- **Text**: Disabled color (muted)
+- **Border**: Subtle, low-contrast outline
+- **Cursor**: Default arrow, no interaction
+
+---
+
+## 🏗️ **Layout System**
+
+### **Grid System**
+- **Base Unit**: 8px for consistent spacing
+- **Margins**: 16px, 24px, 32px based on content hierarchy
+- **Padding**: 8px, 12px, 16px for comfortable content spacing
+
+### **Component Spacing**
+- **Tight**: 4px - Related elements
+- **Normal**: 8px - Standard component spacing
+- **Loose**: 16px - Section separators
+- **Generous**: 24px - Major layout divisions
+
+### **Responsive Breakpoints**
+- **Small**: 1024x768 - Minimum supported resolution
+- **Medium**: 1280x720 - Standard gaming resolution
+- **Large**: 1920x1080 - High-definition displays
+- **Extra Large**: 2560x1440+ - 4K and ultra-wide displays
+
+---
+
+## 🎯 **Component Library**
+
+### **Primary Button**
 ```
-🌾 Wheat        - Crops/harvest
-🌱 Seedling     - Planting/growth
-💧 Water Drop   - Irrigation/moisture
-⚗️ Flask        - Soil chemistry/nitrogen
-🌡️ Thermometer  - Temperature/seasons
-☀️ Sun          - Weather/daylight
-🌧️ Rain         - Precipitation
+Background: Soil Medium → Soil Light (hover) → Soil Dark (active)
+Text: Secondary → Primary (hover/active)
+Border: 2px Soil Light
+Padding: 12px 24px
+Border Radius: 8px
 ```
 
-#### UI Controls
+### **Secondary Button**
 ```
-➕ Plus         - Add/create new
-➖ Minus        - Remove/decrease
-✏️ Pencil       - Edit/modify
-🗑️ Trash        - Delete/remove
-⚙️ Gear         - Settings/options
-❓ Question     - Help/information
-📊 Chart        - Statistics/data
-💰 Money Bag    - Resources/economy
-⏱️ Timer        - Speed/time control
-📌 Pin          - Lock/anchor
-🔄 Arrows       - Refresh/rotate
-✅ Checkmark    - Confirm/success
-❌ X Mark       - Cancel/close
+Background: Transparent → Soil Dark (hover)
+Text: Secondary → Primary (hover)
+Border: 2px Soil Light
+Padding: 8px 16px
+Border Radius: 6px
 ```
 
-### Icon Sizes
-
+### **Input Field**
 ```
-ICON_SMALL    16px × 16px   - Inline text icons
-ICON_MEDIUM   24px × 24px   - Standard buttons
-ICON_LARGE    32px × 32px   - Primary actions
-ICON_XLARGE   48px × 48px   - Feature highlights
+Background: Soil Dark
+Text: Primary
+Border: 2px Soil Light → Summer Gold (focus)
+Padding: 8px 12px
+Border Radius: 4px
+```
+
+### **Panel Container**
+```
+Background: Soil Dark (80% opacity)
+Border: 2px Soil Light
+Header: Soil Medium background, 32px height
+Content: 16px padding
+Border Radius: 8px
 ```
 
 ---
 
-## 🔲 Button & Control Standards
+## 🌱 **Seasonal Theming**
 
-### Button Types
+### **Spring Theme**
+- **Primary Accent**: Spring Green
+- **Background Tint**: Light green overlay (10% opacity)
+- **Decorative Elements**: Young leaves, budding branches
+- **Mood**: Fresh, hopeful, beginning
 
-#### Primary Button
-```
-Background:     GRASS_MEDIUM (#4B7C2F)
-Text:           TEXT_PRIMARY (#FFFFFF)
-Border:         None
-Hover:          GRASS_LIGHT (#73B347)
-Active:         GRASS_DARK (#2D5016)
-Disabled:       NEUTRAL_GRAY (#7F8C8D)
-Height:         40px
-Padding:        16px horizontal
-Border-radius:  6px
-```
+### **Summer Theme**
+- **Primary Accent**: Summer Gold
+- **Background Tint**: Warm yellow overlay (8% opacity)
+- **Decorative Elements**: Full foliage, flowing water
+- **Mood**: Abundant, energetic, growth
 
-#### Secondary Button
-```
-Background:     Transparent
-Text:           TEXT_PRIMARY (#FFFFFF)
-Border:         2px solid SURFACE_BORDER (#4A4A4A)
-Hover:          SURFACE_RAISED (#2D2D2D)
-Active:         SURFACE_PRIMARY (#1A1A1A)
-Disabled:       Opacity 0.5
-Height:         40px
-Padding:        16px horizontal
-Border-radius:  6px
-```
+### **Fall Theme**
+- **Primary Accent**: Fall Orange
+- **Background Tint**: Warm orange overlay (12% opacity)
+- **Decorative Elements**: Autumn leaves, harvest symbols
+- **Mood**: Rich, mature, harvest
 
-#### Icon Button
-```
-Background:     SURFACE_RAISED (#2D2D2D)
-Icon:           TEXT_SECONDARY (#B8B8B8)
-Border:         1px solid SURFACE_BORDER (#4A4A4A)
-Hover:          SURFACE_OVERLAY (#3A3A3A)
-Active:         SURFACE_PRIMARY (#1A1A1A)
-Size:           32px × 32px (square)
-Border-radius:  6px
-```
-
-### Input Controls
-
-#### Text Input
-```
-Background:     SURFACE_PRIMARY (#1A1A1A)
-Text:           TEXT_PRIMARY (#FFFFFF)
-Border:         1px solid SURFACE_BORDER (#4A4A4A)
-Focus:          2px solid INFO_BLUE (#3498DB)
-Height:         36px
-Padding:        8px horizontal
-Border-radius:  4px
-```
-
-#### Dropdown/Select
-```
-Background:     SURFACE_RAISED (#2D2D2D)
-Text:           TEXT_PRIMARY (#FFFFFF)
-Border:         1px solid SURFACE_BORDER (#4A4A4A)
-Arrow:          TEXT_SECONDARY (#B8B8B8)
-Height:         36px
-Padding:        8px horizontal
-Border-radius:  4px
-```
-
-#### Toggle Switch
-```
-Track:          SURFACE_BORDER (#4A4A4A)
-Track Active:   SUCCESS_GREEN (#27AE60)
-Knob:           TEXT_PRIMARY (#FFFFFF)
-Size:           48px × 24px
-Animation:      200ms ease-in-out
-```
+### **Winter Theme**
+- **Primary Accent**: Winter Blue
+- **Background Tint**: Cool blue overlay (6% opacity)
+- **Decorative Elements**: Bare branches, frost patterns
+- **Mood**: Quiet, contemplative, planning
 
 ---
 
-## 📐 Spacing & Layout System
+## 🔧 **Implementation Guidelines**
 
-### Base Grid Unit
+### **CSS/Styling Approach**
+- Use CSS custom properties for consistent color management
+- Implement smooth transitions on all interactive elements
+- Maintain 4.5:1 contrast ratio for accessibility
+- Test all colors for colorblind accessibility
 
-**8px** base unit - All spacing follows multiples of 8
+### **Asset Creation**
+- **Textures**: Subtle, hand-drawn noise overlays
+- **Icons**: Simple, organic shapes with rounded edges
+- **Illustrations**: Watercolor-inspired with soft edges
+- **Backgrounds**: Gradient blends with organic variation
 
-### Spacing Scale
-
-```
-SPACE_XXS    4px    (0.5 units)  - Tight spacing
-SPACE_XS     8px    (1 unit)     - Compact elements
-SPACE_SM     12px   (1.5 units)  - Related items
-SPACE_MD     16px   (2 units)    - Standard spacing
-SPACE_LG     24px   (3 units)    - Section breaks
-SPACE_XL     32px   (4 units)    - Major sections
-SPACE_XXL    48px   (6 units)    - Page margins
-SPACE_XXXL   64px   (8 units)    - Large separations
-```
-
-### Layout Containers
-
-#### Game Canvas
-```
-Full Screen:    1280px × 720px minimum
-Safe Area:      1216px × 656px (32px padding)
-Grid Overlay:   64px × 64px major, 8px × 8px minor
-```
-
-#### Panels
-```
-Min Width:      240px
-Max Width:      480px
-Padding:        16px (SPACE_MD)
-Header Height:  32px
-Border Radius:  8px
-Shadow:         0 4px 16px rgba(0,0,0,0.2)
-```
-
-#### Modals/Popups
-```
-Min Width:      320px
-Max Width:      640px
-Padding:        24px (SPACE_LG)
-Border Radius:  12px
-Backdrop:       rgba(0,0,0,0.6)
-```
-
-### Component Spacing
-
-#### Lists
-```
-Item Padding:   12px vertical, 16px horizontal
-Item Gap:       8px between items
-Section Gap:    24px between sections
-```
-
-#### Forms
-```
-Label Gap:      8px from input
-Field Gap:      16px between fields
-Section Gap:    32px between sections
-```
-
-#### Cards
-```
-Padding:        16px all sides
-Content Gap:    12px between elements
-Card Gap:       16px between cards
-```
+### **Performance Considerations**
+- **Optimization**: Compress textures without losing organic quality
+- **Caching**: Reuse gradient and texture calculations
+- **Layering**: Use efficient alpha blending for transparency effects
+- **Animation**: Limit concurrent animations to maintain smooth performance
 
 ---
 
-## 🎮 Interaction States
+## 📏 **Accessibility Standards**
 
-### Hover States
-- **Brightness**: +10% lightness
-- **Transition**: 150ms ease-in-out
-- **Cursor**: Pointer for clickable, Default for static
+### **Color Contrast**
+- **Primary Text**: 4.5:1 minimum contrast ratio
+- **Secondary Text**: 3:1 minimum contrast ratio
+- **Interactive Elements**: 3:1 minimum contrast ratio
+- **Colorblind Support**: Test with deuteranopia and protanopia filters
 
-### Focus States
-- **Outline**: 2px solid INFO_BLUE (#3498DB)
-- **Offset**: 2px
-- **Animation**: Subtle pulse (optional for important elements)
+### **Typography**
+- **Minimum Size**: 14px for body text, 16px preferred
+- **Line Height**: 1.4-1.6 for optimal readability
+- **Letter Spacing**: Slight increase for small text
+- **Font Weight**: Medium (500) minimum for small text
 
-### Active/Pressed States
-- **Scale**: 0.98 transform
-- **Brightness**: -10% lightness
-- **Duration**: 100ms
-
-### Disabled States
-- **Opacity**: 0.5
-- **Cursor**: Not-allowed
-- **Interactions**: None
+### **Interactive Elements**
+- **Touch Targets**: Minimum 44px for mobile compatibility
+- **Focus States**: Clear visual indicators for keyboard navigation
+- **Error States**: Clear, descriptive feedback
+- **Loading States**: Progress indicators for long operations
 
 ---
 
-## 🎬 Animation Guidelines
+## 🎨 **Usage Examples**
 
-### Timing Functions
-```
-EASE_IN_OUT:    cubic-bezier(0.4, 0, 0.2, 1)    - Standard transitions
-EASE_OUT:       cubic-bezier(0, 0, 0.2, 1)       - Enter animations
-EASE_IN:        cubic-bezier(0.4, 0, 1, 1)       - Exit animations
-LINEAR:         linear                            - Continuous animations
-```
+### **Main Menu**
+- Organic gradient background (Soil Medium → Grass Medium)
+- Decorative stone arch and foliage elements
+- Elevated button styling with glow effects
+- Warm, welcoming typography
 
-### Duration Standards
-```
-INSTANT:        0ms        - No animation
-QUICK:          150ms      - Micro interactions
-NORMAL:         250ms      - Standard transitions
-SLOW:           400ms      - Complex animations
-VERY_SLOW:      600ms      - Page transitions
-```
+### **Game UI**
+- Semi-transparent panels with earth-tone backgrounds
+- Seasonal accent colors for current season
+- Organic button shapes and hover states
+- Natural texture overlays for depth
 
-### Common Animations
-```
-Fade In/Out:    250ms ease-in-out, opacity 0→1
-Slide In:       250ms ease-out, translateY 10px→0
-Scale In:       200ms ease-out, scale 0.95→1
-Rotate:         400ms ease-in-out, 360deg
-```
+### **Information Panels**
+- Clean, readable typography on warm backgrounds
+- Subtle borders and spacing for organization
+- Color-coded information (soil quality, moisture, etc.)
+- Consistent icon styling throughout
 
 ---
 
-## 📱 Responsive Breakpoints
+**🌾 This design system creates a cohesive, beautiful, and functional interface that celebrates the natural beauty of agriculture while maintaining the scientific accuracy and educational value of Field Station.**
 
-```
-MOBILE:         < 640px
-TABLET:         640px - 1024px
-DESKTOP:        1024px - 1440px
-LARGE:          > 1440px
-```
-
-### Adaptive Strategies
-- **Mobile**: Stack panels vertically, full-width
-- **Tablet**: 2-column layouts, collapsible sidebars
-- **Desktop**: Full layout, all panels visible
-- **Large**: Increased spacing, larger type scale
-
----
-
-## 🎯 Implementation Checklist
-
-### Phase 1: Foundation
-- [ ] Create color constants file
-- [ ] Implement typography scale
-- [ ] Set up spacing variables
-- [ ] Create reusable button components
-
-### Phase 2: Components
-- [ ] Design icon set (SVG/PNG)
-- [ ] Build panel system
-- [ ] Create form controls
-- [ ] Implement state management
-
-### Phase 3: Polish
-- [ ] Add animations
-- [ ] Implement dark/light themes
-- [ ] Accessibility testing
-- [ ] Performance optimization
-
----
-
-## 📚 Usage Examples
-
-### Color Usage
-```python
-# Correct semantic usage
-SUCCESS_COLOR = "#27AE60"  # For positive feedback
-ERROR_COLOR = "#E74C3C"     # For error states
-
-# Seasonal theming
-if season == Season.SPRING:
-    accent_color = SPRING_GREEN
-elif season == Season.FALL:
-    accent_color = FALL_ORANGE
-```
-
-### Spacing Usage
-```python
-# Consistent spacing
-panel_padding = SPACE_MD  # 16px
-button_margin = SPACE_SM  # 12px
-section_gap = SPACE_XL    # 32px
-```
-
-### Typography Usage
-```python
-# Hierarchical text
-title_font = pygame.font.Font(None, 24)  # HEADING_2
-body_font = pygame.font.Font(None, 16)   # BODY_BASE
-caption_font = pygame.font.Font(None, 12)  # CAPTION
-```
-
----
-
-**Design System v1.0** - Created for Field Station Agricultural Simulation
-*Last Updated: September 2024*
+*Design System v0.1 - September 2024*
+*Establishing the visual foundation for educational agricultural simulation*

@@ -1,0 +1,13 @@
+{
+  "FS-SPRINT-001": {
+    "id": "FS-SPRINT-001",
+    "name": "Sprint 1: QA Framework & Documentation",
+    "start_date": "2024-09-01",
+    "end_date": "2024-09-15",
+    "goal": "Complete QA framework implementation and documentation system",
+    "status": "active",
+    "ticket_ids": [],
+    "capacity_points": 25,
+    "committed_points": 0
+  }
+}

@@ -88,7 +88,7 @@ python3 test_field_station.py  # Unit tests only
 
 ## 📈 Current Status
 
-**v1.0 Released** - Core gameplay systems complete:
+**v0.1 Released** - Core gameplay systems complete:
 - ✅ Full save/load functionality
 - ✅ Dynamic market system with seasonal pricing
 - ✅ Extreme weather events (drought, flood, storms)

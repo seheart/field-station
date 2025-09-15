@@ -1,0 +1,118 @@
+{
+  "version": "0.1",
+  "farm_name": "test",
+  "farm_location": "Champaign, Illinois, USA (40.1164\u00b0N, 88.2434\u00b0W)",
+  "money": 500,
+  "day": 1,
+  "season": "SPRING",
+  "weather": "SUNNY",
+  "current_date": "2025-03-01T00:00:00",
+  "auto_harvest": false,
+  "grid": [
+    [
+      {
+        "x": 0,
+        "y": 0,
+        "soil_quality": 0.8024673663766211,
+        "moisture": 0.522159759104774,
+        "nitrogen": 0.6859251678004575,
+        "crop": null,
+        "growth_progress": 0.0,
+        "days_planted": 0,
+        "harvested_times": 0
+      },
+      {
+        "x": 1,
+        "y": 0,
+        "soil_quality": 0.8734861856776438,
+        "moisture": 0.43038576968713094,
+        "nitrogen": 0.5134769946271859,
+        "crop": null,
+        "growth_progress": 0.0,
+        "days_planted": 0,
+        "harvested_times": 0
+      },
+      {
+        "x": 2,
+        "y": 0,
+        "soil_quality": 0.6570165864754052,
+        "moisture": 0.6903897643877384,
+        "nitrogen": 0.642812648693968,
+        "crop": null,
+        "growth_progress": 0.0,
+        "days_planted": 0,
+        "harvested_times": 0
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 1,
+        "soil_quality": 0.8216774647783945,
+        "moisture": 0.5156631335397311,
+        "nitrogen": 0.6597807258711258,
+        "crop": null,
+        "growth_progress": 0.0,
+        "days_planted": 0,
+        "harvested_times": 0
+      },
+      {
+        "x": 1,
+        "y": 1,
+        "soil_quality": 0.7401544940453824,
+        "moisture": 0.5352590857979844,
+        "nitrogen": 0.5348354723891428,
+        "crop": null,
+        "growth_progress": 0.0,
+        "days_planted": 0,
+        "harvested_times": 0
+      },
+      {
+        "x": 2,
+        "y": 1,
+        "soil_quality": 0.8183322358268154,
+        "moisture": 0.6421283528986247,
+        "nitrogen": 0.6332744361405512,
+        "crop": null,
+        "growth_progress": 0.0,
+        "days_planted": 0,
+        "harvested_times": 0
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 2,
+        "soil_quality": 0.8293795831569903,
+        "moisture": 0.4864199613697721,
+        "nitrogen": 0.7063122020170176,
+        "crop": null,
+        "growth_progress": 0.0,
+        "days_planted": 0,
+        "harvested_times": 0
+      },
+      {
+        "x": 1,
+        "y": 2,
+        "soil_quality": 0.7610833024544283,
+        "moisture": 0.4842094466829313,
+        "nitrogen": 0.6149337655213944,
+        "crop": null,
+        "growth_progress": 0.0,
+        "days_planted": 0,
+        "harvested_times": 0
+      },
+      {
+        "x": 2,
+        "y": 2,
+        "soil_quality": 0.8784770443867411,
+        "moisture": 0.4839014997179084,
+        "nitrogen": 0.7963962316166648,
+        "crop": null,
+        "growth_progress": 0.0,
+        "days_planted": 0,
+        "harvested_times": 0
+      }
+    ]
+  ]
+}

@@ -4,21 +4,21 @@ A comprehensive set of design tokens for consistent UI/UX
 """
 
 # ============================================================================
-# COLOR PALETTE
+# COLOR PALETTE - Hand-drawn Organic Style
 # ============================================================================
 
-# Core Earth Tones - Primary Palette
-SOIL_DARK = (44, 24, 16)        # #2C1810 - Rich dark earth
-SOIL_MEDIUM = (74, 52, 38)      # #4A3426 - Fertile soil  
-SOIL_LIGHT = (107, 78, 61)      # #6B4E3D - Dry earth
+# Core Earth Tones - Inspired by watercolor illustration
+SOIL_DARK = (75, 59, 48)        # #4B3B30 - Rich organic earth
+SOIL_MEDIUM = (139, 115, 85)    # #8B7355 - Warm fertile soil  
+SOIL_LIGHT = (160, 145, 107)    # #A0916B - Sandy earth
 
-GRASS_DARK = (45, 80, 22)       # #2D5016 - Deep grass
-GRASS_MEDIUM = (75, 124, 47)    # #4B7C2F - Healthy vegetation
-GRASS_LIGHT = (115, 179, 71)    # #73B347 - Young growth
+GRASS_DARK = (93, 107, 79)      # #5D6B4F - Deep forest
+GRASS_MEDIUM = (107, 123, 94)   # #6B7B5E - Sage green
+GRASS_LIGHT = (122, 132, 113)   # #7A8471 - Soft meadow
 
-WATER_DARK = (27, 58, 75)       # #1B3A4B - Deep water
-WATER_MEDIUM = (46, 95, 124)    # #2E5F7C - Clean water
-WATER_LIGHT = (74, 144, 164)    # #4A90A4 - Shallow water
+WATER_DARK = (100, 149, 237)    # #6495ED - Deep flowing water
+WATER_MEDIUM = (135, 206, 235)  # #87CEEB - Clear stream
+WATER_LIGHT = (176, 224, 230)   # #B0E0E6 - Shallow pools
 
 # Seasonal Accent Colors
 SPRING_GREEN = (143, 209, 79)   # #8FD14F - New growth
@@ -33,17 +33,17 @@ ERROR_RED = (231, 76, 60)       # #E74C3C - Problems/errors
 INFO_BLUE = (52, 152, 219)      # #3498DB - Information
 NEUTRAL_GRAY = (127, 140, 141)  # #7F8C8D - Inactive states
 
-# UI Surface Colors
-SURFACE_PRIMARY = (26, 26, 26)   # #1A1A1A - Main UI backgrounds
-SURFACE_RAISED = (45, 45, 45)    # #2D2D2D - Elevated elements
-SURFACE_OVERLAY = (58, 58, 58)   # #3A3A3A - Modals/popups
-SURFACE_BORDER = (74, 74, 74)    # #4A4A4A - Borders/dividers
+# UI Surface Colors - Organic, warm surfaces
+SURFACE_PRIMARY = (75, 59, 48)    # #4B3B30 - Warm earth backgrounds
+SURFACE_RAISED = (107, 90, 75)    # #6B5A4B - Elevated organic elements
+SURFACE_OVERLAY = (139, 115, 85)  # #8B7355 - Modal/popup warmth
+SURFACE_BORDER = (160, 145, 107)  # #A0916B - Soft borders
 
-# Text Colors
-TEXT_PRIMARY = (255, 255, 255)   # #FFFFFF - Main content
-TEXT_SECONDARY = (184, 184, 184) # #B8B8B8 - Supporting content
-TEXT_DISABLED = (102, 102, 102)  # #666666 - Inactive text
-TEXT_INVERSE = (26, 26, 26)      # #1A1A1A - Text on light bg
+# Text Colors - Organic, readable contrast
+TEXT_PRIMARY = (245, 230, 211)    # #F5E6D3 - Warm white text
+TEXT_SECONDARY = (212, 196, 168)  # #D4C4A8 - Muted supporting text
+TEXT_DISABLED = (122, 132, 113)   # #7A8471 - Subtle disabled text
+TEXT_INVERSE = (75, 59, 48)       # #4B3B30 - Dark text on light
 
 # Legacy colors (for backward compatibility - will phase out)
 BLACK = (0, 0, 0)
