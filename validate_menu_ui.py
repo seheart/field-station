@@ -849,7 +849,7 @@ def main():
         report = validator.run_all_validations()
         
         # Save report to file
-        with open('/home/seth/development/field_station/ui_validation_report.json', 'w') as f:
+        with open('ui_validation_report.json', 'w') as f:
             json.dump(report, f, indent=2)
         
         print(f"\n📄 Detailed report saved to: ui_validation_report.json")

@@ -8,7 +8,7 @@ This software is proprietary. See LICENSE file for terms and conditions.
 Educational use in academic institutions is permitted.
 Commercial use requires explicit written permission.
 
-For licensing inquiries: seheart@github.com
+For licensing inquiries: contact@field-station.dev
 """
 
 import pygame

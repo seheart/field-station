@@ -1,3 +1,3 @@
 #!/bin/bash
-cd /home/seth/development/field_station
+cd "$(dirname "$0")"
 exec python3 field_station.py
